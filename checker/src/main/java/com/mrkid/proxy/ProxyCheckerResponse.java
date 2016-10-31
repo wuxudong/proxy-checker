@@ -18,21 +18,22 @@ public class ProxyCheckerResponse {
     public static int HIGH_ANONYMITY_PROXY = 4;
 
 
-    private final String originIP;
-    private final String remoteIP;
+    private final String originIp;
+    private final String proxyIp;
+    private final String remoteIp;
     private final String xForwardedFor;
 
     public int getProxyType() {
-        if (StringUtils.isBlank(remoteIP)) {
+        if (StringUtils.isBlank(remoteIp)) {
             return 0;
         }
 
         if (StringUtils.isBlank(xForwardedFor)) {
             return HIGH_ANONYMITY_PROXY;
         } else {
-            if (xForwardedFor.equals(originIP)) {
+            if (xForwardedFor.equals(originIp)) {
                 return TRANSPARENT_PROXY;
-            } else if (xForwardedFor.equals(remoteIP)) {
+            } else if (xForwardedFor.equals(remoteIp)) {
                 return ANONYMOUS_PROXY;
             } else {
                 return DISTORTING_PROXY;

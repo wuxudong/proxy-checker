@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class ProxyCheckerController {
     @RequestMapping(path = "/proxy-check")
     @ResponseBody
-    public ProxyCheckerResponse checkProxy(@RequestParam("originIp") String originIp, @RequestHeader
+    public ProxyCheckerResponse checkProxy(@RequestParam("originIp") String originIp, @RequestParam("proxyIp")
+            String proxyIp,  @RequestHeader
             (value = "X-FORWARDED-FOR", required = false) String xForwardedFor, HttpServletRequest request) {
         String remoteIp = request.getRemoteAddr();
-        return new ProxyCheckerResponse(originIp, remoteIp,xForwardedFor);
+        return new ProxyCheckerResponse(originIp, proxyIp, remoteIp,xForwardedFor);
     }
 }

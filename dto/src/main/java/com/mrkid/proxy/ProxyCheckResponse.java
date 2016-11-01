@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Data
 @RequiredArgsConstructor
-public class ProxyCheckerResponse {
+public class ProxyCheckResponse {
     public static int TRANSPARENT_PROXY = 1;
     public static int ANONYMOUS_PROXY = 2;
     public static int DISTORTING_PROXY = 3;
@@ -19,9 +19,11 @@ public class ProxyCheckerResponse {
 
 
     private final String originIp;
-    private final String proxyIp;
     private final String remoteIp;
     private final String xForwardedFor;
+    private final Proxy proxy;
+
+    private final boolean valid;
 
     public int getProxyType() {
         if (StringUtils.isBlank(remoteIp)) {

@@ -1,27 +1,26 @@
 package com.mrkid.scheduler;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mrkid.proxy.Proxy;
+import com.mrkid.proxy.ProxyCheckResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.config.ConnectionConfig;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
-import org.apache.http.impl.nio.reactor.IOReactorConfig;
+import org.apache.http.protocol.HttpContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.CodingErrorAction;
-import java.util.HashMap;
+import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -34,76 +33,61 @@ import java.util.stream.Collectors;
 public class Scheduler {
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    public List<String> check(String originIp, String proxyCheckerUrl, List<ProxyInput>
-            proxyInputs) throws IOException {
+    @Autowired
+    private CloseableHttpAsyncClient httpclient;
 
-        final int TIMEOUT = 30 * 1000;
-        // reactor config
-        IOReactorConfig reactorConfig = IOReactorConfig.custom()
-                .setConnectTimeout(TIMEOUT)
-                .setSoTimeout(TIMEOUT).build();
+    public List<ProxyCheckResponse> check(String originIp, String proxyCheckerUrl, List<Proxy>
+            proxies) throws IOException {
+        final List<CompletableFuture<ProxyCheckResponse>> futures = proxies.stream().map(proxy ->
+                getProxyResponse(originIp, proxyCheckerUrl, proxy)
+        ).collect(Collectors.toList());
 
-        HttpAsyncClientBuilder asyncClientBuilder = HttpAsyncClientBuilder.create();
-        asyncClientBuilder.setDefaultIOReactorConfig(reactorConfig);
-
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(TIMEOUT)
-                .setConnectionRequestTimeout(TIMEOUT)
-                .setSocketTimeout(TIMEOUT).build();
-        asyncClientBuilder.setDefaultRequestConfig(requestConfig);
-
-        ConnectionConfig connectionConfig = ConnectionConfig.custom()
-                .setMalformedInputAction(CodingErrorAction.IGNORE)
-                .setUnmappableInputAction(CodingErrorAction.IGNORE)
-                .build();
-        asyncClientBuilder.setDefaultConnectionConfig(connectionConfig);
-
-        try (CloseableHttpAsyncClient httpclient = asyncClientBuilder.build()) {
-            httpclient.start();
-
-            final List<CompletableFuture<String>> futures = proxyInputs.stream().map(proxyInput -> {
-
-                RequestConfig config = RequestConfig.custom()
-                        .setProxy(new HttpHost(proxyInput.getHost(), proxyInput.getPort()))
-                        .build();
-
-                HttpGet request = new HttpGet(proxyCheckerUrl + "?" +
-                        "originIp=" + originIp +
-                        "&proxyIp=" + proxyInput.getHost() + ":" + proxyInput.getPort());
-                request.setConfig(config);
-
-                return getProxyResponse(httpclient, request, proxyInput);
-            }).collect(Collectors.toList());
-
-            return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
-                    .thenApply(
-                            v ->
-                                    futures.stream().map(CompletableFuture::join)
-                                            .filter(s -> StringUtils.isNotBlank(s))
-                                            .collect(Collectors.toList()))
-                    .join();
-        }
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+                .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList())).join();
 
 
     }
 
-    private CompletableFuture<String> getProxyResponse(CloseableHttpAsyncClient httpclient, HttpGet request,
-                                                       ProxyInput proxyInput) {
-        CompletableFuture<String> promise = new CompletableFuture<>();
+    private CompletableFuture<ProxyCheckResponse> getProxyResponse(String originIp,
+                                                                   String proxyCheckerUrl, Proxy proxy) {
+        CompletableFuture<ProxyCheckResponse> promise = new CompletableFuture<>();
+
+        final ProxyCheckResponse errorResponse = new ProxyCheckResponse("", "", "", proxy, false);
+
+        HttpPost request = new HttpPost(proxyCheckerUrl + "?originIp=" + originIp);
 
 
-        httpclient.execute(request, new FutureCallback<HttpResponse>() {
+        HttpContext httpContext = HttpClientContext.create();
+
+
+        if (proxy.getSchema().equalsIgnoreCase("socks5") || proxy.getSchema().equalsIgnoreCase("socks4")) {
+            httpContext.setAttribute("socks.address", new InetSocketAddress(proxy.getHost(), proxy.getPort()));
+        } else if (proxy.getSchema().equalsIgnoreCase("http") || proxy.getSchema().equalsIgnoreCase("https")) {
+            RequestConfig config = RequestConfig.custom()
+                    .setProxy(new HttpHost(proxy.getHost(), proxy.getPort(), proxy.getSchema().toLowerCase()))
+                    .build();
+
+            request.setConfig(config);
+        }
+
+
+        try {
+            request.setEntity(new StringEntity(objectMapper.writeValueAsString(proxy), "utf-8"));
+        } catch (JsonProcessingException e) {
+        }
+
+        httpclient.execute(request, httpContext, new FutureCallback<HttpResponse>() {
             @Override
             public void completed(HttpResponse httpResponse) {
                 if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                    promise.complete(null);
+                    promise.complete(errorResponse);
                 } else {
                     try {
                         final String value = IOUtils.toString(httpResponse.getEntity().getContent(), "utf-8");
-                        promise.complete(objectMapper.writeValueAsString(objectMapper.readTree(value)));
+                        promise.complete(objectMapper.readValue(value, ProxyCheckResponse.class));
                     } catch (IOException e) {
                         e.printStackTrace();
-                        promise.complete(null);
+                        promise.complete(errorResponse);
                     }
                 }
 
@@ -112,7 +96,7 @@ public class Scheduler {
             @Override
             public void failed(Exception e) {
                 e.printStackTrace();
-                promise.complete(null);
+                promise.complete(errorResponse);
             }
 
             @Override
@@ -122,9 +106,5 @@ public class Scheduler {
         });
 
         return promise;
-    }
-
-    private synchronized void append(PrintWriter writer, String content) {
-        writer.println(content);
     }
 }

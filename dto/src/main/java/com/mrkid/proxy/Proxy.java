@@ -1,4 +1,4 @@
-package com.mrkid.scheduler;
+package com.mrkid.proxy;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +10,8 @@ import lombok.RequiredArgsConstructor;
  */
 @Data
 @RequiredArgsConstructor
-public class ProxyInput {
+public class Proxy {
+    private final String schema;
     private final String host;
     private final int port;
 }

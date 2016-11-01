@@ -2,10 +2,7 @@ package com.mrkid.proxy;
 
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * User: xudong
@@ -16,10 +13,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class ProxyCheckerController {
     @RequestMapping(path = "/proxy-check")
     @ResponseBody
-    public ProxyCheckerResponse checkProxy(@RequestParam("originIp") String originIp, @RequestParam("proxyIp")
-            String proxyIp,  @RequestHeader
-            (value = "X-FORWARDED-FOR", required = false) String xForwardedFor, HttpServletRequest request) {
+    public ProxyCheckResponse checkProxy(@RequestParam("originIp") String originIp, @RequestBody
+            Proxy proxy, @RequestHeader(value = "X-FORWARDED-FOR", required = false) String xForwardedFor,
+                                         HttpServletRequest request) {
         String remoteIp = request.getRemoteAddr();
-        return new ProxyCheckerResponse(originIp, proxyIp, remoteIp,xForwardedFor);
+        return new ProxyCheckResponse(originIp, remoteIp, xForwardedFor, proxy, true);
     }
 }

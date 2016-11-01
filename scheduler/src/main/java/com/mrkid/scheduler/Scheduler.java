@@ -12,6 +12,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.concurrent.FutureCallback;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.protocol.HttpContext;
@@ -72,7 +73,7 @@ public class Scheduler {
 
 
         try {
-            request.setEntity(new StringEntity(objectMapper.writeValueAsString(proxy), "utf-8"));
+            request.setEntity(new StringEntity(objectMapper.writeValueAsString(proxy), ContentType.APPLICATION_JSON));
         } catch (JsonProcessingException e) {
         }
 

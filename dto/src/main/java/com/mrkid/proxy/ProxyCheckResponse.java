@@ -25,21 +25,25 @@ public class ProxyCheckResponse {
 
     private final boolean valid;
 
-    public int getProxyType() {
+    private int proxyType;
+
+    public ProxyCheckResponse calculateProxyType() {
         if (StringUtils.isBlank(remoteIp)) {
-            return 0;
+            proxyType = 0;
         }
 
         if (StringUtils.isBlank(xForwardedFor)) {
-            return HIGH_ANONYMITY_PROXY;
+            proxyType = HIGH_ANONYMITY_PROXY;
         } else {
             if (xForwardedFor.equals(originIp)) {
-                return TRANSPARENT_PROXY;
+                proxyType = TRANSPARENT_PROXY;
             } else if (xForwardedFor.equals(remoteIp)) {
-                return ANONYMOUS_PROXY;
+                proxyType = ANONYMOUS_PROXY;
             } else {
-                return DISTORTING_PROXY;
+                proxyType = DISTORTING_PROXY;
             }
         }
+
+        return this;
     }
 }

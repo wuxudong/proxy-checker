@@ -17,6 +17,6 @@ public class ProxyCheckerController {
             Proxy proxy, @RequestHeader(value = "X-FORWARDED-FOR", required = false) String xForwardedFor,
                                          HttpServletRequest request) {
         String remoteIp = request.getRemoteAddr();
-        return new ProxyCheckResponse(originIp, remoteIp, xForwardedFor, proxy, true);
+        return  new ProxyCheckResponse(originIp, remoteIp, xForwardedFor, proxy, true).calculateProxyType();
     }
 }

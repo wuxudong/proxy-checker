@@ -26,7 +26,6 @@ public class ProxyCheckResponse {
     private int proxyType;
 
     public ProxyCheckResponse() {
-
     }
 
 

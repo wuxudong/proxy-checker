@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
 /**
@@ -34,13 +35,28 @@ import java.util.stream.Collectors;
 public class Scheduler {
     private ObjectMapper objectMapper = new ObjectMapper();
 
+    private final int concurrentPermits = 100;
     @Autowired
     private CloseableHttpAsyncClient httpclient;
 
     public List<ProxyCheckResponse> check(String originIp, String proxyCheckerUrl, List<Proxy>
             proxies) throws IOException {
-        final List<CompletableFuture<ProxyCheckResponse>> futures = proxies.stream().map(proxy ->
-                getProxyResponse(originIp, proxyCheckerUrl, proxy)
+
+        Semaphore semaphore = new Semaphore(concurrentPermits);
+        final List<CompletableFuture<ProxyCheckResponse>> futures = proxies.stream().map(proxy -> {
+
+                    try {
+                        semaphore.acquire();
+                        return getProxyResponse(originIp, proxyCheckerUrl, proxy)
+                                .whenComplete((t, u) -> semaphore.release());
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        final CompletableFuture<ProxyCheckResponse> future = new CompletableFuture<>();
+                        future.complete(new ProxyCheckResponse("", "", "", proxy, false));
+                        return future;
+                    }
+                }
+
         ).collect(Collectors.toList());
 
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
@@ -51,6 +67,7 @@ public class Scheduler {
 
     private CompletableFuture<ProxyCheckResponse> getProxyResponse(String originIp,
                                                                    String proxyCheckerUrl, Proxy proxy) {
+
         CompletableFuture<ProxyCheckResponse> promise = new CompletableFuture<>();
 
         final ProxyCheckResponse errorResponse = new ProxyCheckResponse("", "", "", proxy, false);

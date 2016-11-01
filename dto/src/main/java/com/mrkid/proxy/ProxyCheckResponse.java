@@ -1,7 +1,6 @@
 package com.mrkid.proxy;
 
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -10,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
  * Time: 3:02 PM
  */
 @Data
-@RequiredArgsConstructor
 public class ProxyCheckResponse {
     public static int TRANSPARENT_PROXY = 1;
     public static int ANONYMOUS_PROXY = 2;
@@ -18,14 +16,27 @@ public class ProxyCheckResponse {
     public static int HIGH_ANONYMITY_PROXY = 4;
 
 
-    private final String originIp;
-    private final String remoteIp;
-    private final String xForwardedFor;
-    private final Proxy proxy;
+    private String originIp;
+    private String remoteIp;
+    private String xForwardedFor;
+    private Proxy proxy;
 
-    private final boolean valid;
+    private boolean valid;
 
     private int proxyType;
+
+    public ProxyCheckResponse() {
+
+    }
+
+
+    public ProxyCheckResponse(String originIp, String remoteIp, String xForwardedFor, Proxy proxy, boolean valid) {
+        this.originIp = originIp;
+        this.remoteIp = remoteIp;
+        this.xForwardedFor = xForwardedFor;
+        this.proxy = proxy;
+        this.valid = valid;
+    }
 
     public ProxyCheckResponse calculateProxyType() {
         if (StringUtils.isBlank(remoteIp)) {

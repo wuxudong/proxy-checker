@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
  * Time: 6:16 PM
  */
 @Data
-@RequiredArgsConstructor
 public class Proxy {
     private final String schema;
     private final String host;

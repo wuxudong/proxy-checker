@@ -97,6 +97,7 @@ public class ProxyChecker {
         try {
             request.setEntity(new StringEntity(objectMapper.writeValueAsString(proxy), ContentType.APPLICATION_JSON));
         } catch (JsonProcessingException e) {
+            logger.error("unable to write json", e);
         }
 
         httpclient.execute(request, httpContext, new FutureCallback<HttpResponse>() {

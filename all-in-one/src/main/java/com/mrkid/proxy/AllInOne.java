@@ -63,7 +63,11 @@ public class AllInOne {
         // start web
         final ConfigurableApplicationContext context = SpringApplication.run(Main.class);
 
+        // try wait a little longer until web is started
+        Thread.sleep(5000l);
+
         System.out.println("web start finish");
+
 
         // check every proxy and output
 
@@ -81,7 +85,7 @@ public class AllInOne {
         final ObjectMapper objectMapper = new ObjectMapper();
         try (final PrintWriter jsonWriter = new PrintWriter(new FileWriter(allProxyInJsonFormat));
              final PrintWriter squidWriter = new PrintWriter(new FileWriter(highAnonymityInSquidFormat))) {
-            proxyChecker.check(ip, "http://" + ip + ":8080//proxy-check", proxies)
+            proxyChecker.check(ip, String.format("http://%s:8080/proxy-check", ip), proxies)
                     .stream().forEach(line -> {
                 try {
                     jsonWriter.println(objectMapper.writeValueAsString(line));
@@ -97,6 +101,6 @@ public class AllInOne {
             });
         }
 
-        context.close();
+//        context.close();
     }
 }

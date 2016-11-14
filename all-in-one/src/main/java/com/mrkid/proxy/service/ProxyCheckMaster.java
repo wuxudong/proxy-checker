@@ -16,12 +16,12 @@ import java.util.stream.Collectors;
 /**
  *
  * Check if proxy works.
+ * runs forever.
  *
  * User: xudong
  * Date: 03/11/2016
  * Time: 4:54 PM
  */
-@Component
 public class ProxyCheckMaster {
     private BlockingQueue<Proxy> heartBeatQueue = new LinkedBlockingQueue<>();
 

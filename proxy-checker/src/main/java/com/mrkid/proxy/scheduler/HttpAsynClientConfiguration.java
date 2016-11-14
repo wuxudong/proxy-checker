@@ -20,7 +20,7 @@ import java.nio.charset.CodingErrorAction;
 @Configuration
 public class HttpAsynClientConfiguration {
     @Bean
-    public CloseableHttpAsyncClient initHttpAsyncClient() {
+    public CloseableHttpAsyncClient httpAsyncClient() {
 
         final int TIMEOUT = 30 * 1000;
         // reactor config

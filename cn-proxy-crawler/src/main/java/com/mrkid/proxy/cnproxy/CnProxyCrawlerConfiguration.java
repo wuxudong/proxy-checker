@@ -6,17 +6,22 @@ import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * User: xudong
  * Date: 03/11/2016
  * Time: 1:05 PM
  */
-public class Crawler4jControllerHelper {
+@Configuration
+public class CnProxyCrawlerConfiguration {
 
-    public static CrawlController getCrawlController() throws Exception {
+    @Bean
+    public CrawlController crawlController() throws Exception {
         String crawlStorageFolder = "./crawl/root";
 
         CrawlConfig config = new CrawlConfig();
@@ -28,15 +33,19 @@ public class Crawler4jControllerHelper {
         RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
         CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 
-
         controller.addSeed("http://cn-proxy.com/");
 
         return controller;
     }
 
-    public static CrawlController.WebCrawlerFactory getWebCrawlerFactory(BlockingQueue<Proxy> queue) {
-        return () -> new CnProxyCrawler(queue);
+    @Bean
+    public BlockingQueue<Proxy> cnProxyQueue() {
+        return new LinkedBlockingQueue<>();
     }
 
-    ;
+
+    @Bean
+    public CrawlController.WebCrawlerFactory webCrawlerFactory(BlockingQueue<Proxy> cnProxyQueue) {
+        return () -> new CnProxyCrawler(cnProxyQueue);
+    }
 }

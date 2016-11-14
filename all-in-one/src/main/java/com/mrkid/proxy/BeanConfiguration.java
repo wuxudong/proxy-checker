@@ -15,7 +15,7 @@ import java.net.UnknownHostException;
 @Configuration
 public class BeanConfiguration {
     @Bean
-    public String initOriginIp() throws SocketException, UnknownHostException {
+    public String originIp() throws SocketException, UnknownHostException {
         return AddressUtils.getMyIp();
     }
 }

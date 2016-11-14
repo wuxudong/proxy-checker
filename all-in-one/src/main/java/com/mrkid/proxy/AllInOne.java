@@ -50,9 +50,12 @@ public class AllInOne {
         controller.start(factory, numberOfCrawlers);
         controller.waitUntilFinish();
 
+        System.out.println("crawl cn-proxy finish");
 
         // start web
         final ConfigurableApplicationContext context = SpringApplication.run(Main.class);
+
+        System.out.println("web start finish");
 
         // check every proxy and output
 

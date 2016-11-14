@@ -16,7 +16,7 @@
         <module>web</module>
         <module>proxy-checker</module>
         <module>common</module>
-        <module>client</module>
+        <!--<module>client</module>-->
         <module>cn-proxy-crawler</module>
         <module>all-in-one</module>
     </modules>
@@ -41,12 +41,6 @@
             <dependency>
                 <groupId>com.mrkid</groupId>
                 <artifactId>proxy-checker</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.mrkid</groupId>
-                <artifactId>client</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

@@ -46,11 +46,12 @@ public class ProxyCheckerMain {
             // crawl proxy from cn-proxy
 
 
-            CrawlController controller = context.getBean(CrawlController.class);
+            CrawlController crawlController = context.getBean(CrawlController.class);
 
             int numberOfCrawlers = 1;
-            controller.start(context.getBean(CrawlController.WebCrawlerFactory.class), numberOfCrawlers);
-            controller.waitUntilFinish();
+            crawlController.start(context.getBean(CrawlController.WebCrawlerFactory.class), numberOfCrawlers);
+            crawlController.waitUntilFinish();
+            crawlController.shutdown();
 
             System.out.println("crawl cn-proxy finish");
 

@@ -16,6 +16,8 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.protocol.HttpContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,6 +41,8 @@ public class ProxyChecker {
     @Autowired
     private CloseableHttpAsyncClient httpclient;
 
+    private static final Logger logger = LoggerFactory.getLogger(ProxyChecker.class);
+
     public List<ProxyCheckResponse> check(String originIp, String proxyCheckerUrl, List<Proxy> proxies) {
 
         Semaphore semaphore = new Semaphore(concurrentPermits);
@@ -49,7 +53,9 @@ public class ProxyChecker {
                         return getProxyResponse(originIp, proxyCheckerUrl, proxy)
                                 .whenComplete((t, u) -> semaphore.release());
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+
+                        logger.error("unable to acquire semaphore", e);
+
                         final CompletableFuture<ProxyCheckResponse> future = new CompletableFuture<>();
                         future.complete(new ProxyCheckResponse("", "", "", proxy, false));
                         return future;
@@ -71,7 +77,7 @@ public class ProxyChecker {
 
         final ProxyCheckResponse errorResponse = new ProxyCheckResponse("", "", "", proxy, false);
 
-        HttpPost request = new HttpPost(proxyCheckerUrl + "?originIp=" + originIp);
+        final HttpPost request = new HttpPost(proxyCheckerUrl + "?originIp=" + originIp);
 
 
         HttpContext httpContext = HttpClientContext.create();
@@ -103,7 +109,8 @@ public class ProxyChecker {
                         final String value = IOUtils.toString(httpResponse.getEntity().getContent(), "utf-8");
                         promise.complete(objectMapper.readValue(value, ProxyCheckResponse.class));
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.error("unable to parse check response of " + request.getEntity(), e);
+
                         promise.complete(errorResponse);
                     }
                 }
@@ -112,7 +119,7 @@ public class ProxyChecker {
 
             @Override
             public void failed(Exception e) {
-                e.printStackTrace();
+                logger.error("failure of  " + request.getEntity(), e);
                 promise.complete(errorResponse);
             }
 

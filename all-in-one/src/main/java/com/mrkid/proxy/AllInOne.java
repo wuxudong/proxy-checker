@@ -1,26 +1,25 @@
 package com.mrkid.proxy;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mrkid.proxy.cnproxy.Crawler4jControllerHelper;
 import com.mrkid.proxy.dto.Proxy;
+import com.mrkid.proxy.dto.ProxyCheckResponse;
 import com.mrkid.proxy.scheduler.Main;
 import com.mrkid.proxy.scheduler.ProxyChecker;
 import com.mrkid.proxy.utils.AddressUtils;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
-import org.apache.commons.io.FileUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.stream.Collectors;
 
 /**
  * User: xudong
@@ -31,11 +30,20 @@ import java.util.stream.Collectors;
 public class AllInOne {
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
-            System.out.printf("Usage: <output>");
+            System.out.printf("Usage: <output_directory>");
             return;
         }
 
-        String output = args[0];
+        File outputDirectory = new File(args[0]);
+
+        if (outputDirectory.exists()) {
+            if (outputDirectory.isDirectory()) {
+                System.out.printf("<output_directory> should be a directory");
+                return;
+            }
+        } else {
+            outputDirectory.mkdirs();
+        }
 
         // crawl proxy from cn-proxy
 
@@ -65,9 +73,28 @@ public class AllInOne {
 
         final ProxyChecker proxyChecker = context.getBean(ProxyChecker.class);
 
-        try (final PrintWriter writer = new PrintWriter(new FileWriter(output))) {
-            proxyChecker.check(ip, "http://" + ip + ":8080//proxy-check",
-                    proxies).stream().forEach(line -> writer.println(line));
+        final File allProxyInJsonFormat = new File(outputDirectory, "all_proxy" +
+                ".json");
+        final File highAnonymityInSquidFormat = new File(outputDirectory,
+                "high_anonymity_proxy.squid");
+
+        final ObjectMapper objectMapper = new ObjectMapper();
+        try (final PrintWriter jsonWriter = new PrintWriter(new FileWriter(allProxyInJsonFormat));
+             final PrintWriter squidWriter = new PrintWriter(new FileWriter(highAnonymityInSquidFormat))) {
+            proxyChecker.check(ip, "http://" + ip + ":8080//proxy-check", proxies)
+                    .stream().forEach(line -> {
+                try {
+                    jsonWriter.println(objectMapper.writeValueAsString(line));
+                    if (line.getProxyType() == ProxyCheckResponse.HIGH_ANONYMITY_PROXY &&
+                            "http".equalsIgnoreCase(line.getProxy().getSchema())) {
+                        squidWriter.println(
+                                String.format("cache_peer %s parent %d 0 round-robin no-query",
+                                        line.getProxy().getHost(), line.getProxy().getPort()));
+
+                    }
+                } catch (JsonProcessingException e) {
+                }
+            });
         }
 
         context.close();

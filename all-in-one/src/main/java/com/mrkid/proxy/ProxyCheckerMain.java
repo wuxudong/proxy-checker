@@ -83,7 +83,8 @@ public class ProxyCheckerMain {
                 });
 
                 list.stream().filter(r -> r.isValid())
-                        .filter(line -> "http".equalsIgnoreCase(line.getProxy().getSchema()))
+                        .filter(r -> "http".equalsIgnoreCase(r.getProxy().getSchema()))
+                        .filter(r -> r.getProxyType() == ProxyCheckResponse.HIGH_ANONYMITY_PROXY)
                         .collect(Collectors.toSet())
                         .forEach(line ->
                                 squidWriter.println(

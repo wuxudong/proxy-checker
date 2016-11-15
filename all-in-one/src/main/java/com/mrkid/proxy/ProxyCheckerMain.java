@@ -88,9 +88,9 @@ public class ProxyCheckerMain {
                         .collect(Collectors.toSet())
                         .forEach(line ->
                                 squidWriter.println(
-                                        String.format("cache_peer %s parent %d 0 round-robin no-query", line.getProxy
-                                                ().getHost(), line.getProxy().getPort())));
-
+                                        String.format(
+                                                "cache_peer %s parent %d 0 round-robin no-query connect-fail-limit=1",
+                                                line.getProxy().getHost(), line.getProxy().getPort())));
 
             }
 

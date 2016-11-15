@@ -9,3 +9,7 @@ It will
   * DISTORTING_PROXY
   * HIGH_ANONYMITY_PROXY
 * output proxies in squid format
+
+## usage
+ mvn clean -Dmaven.test.skip packge
+ java -DisEc2=true/false -jar proxy-checker/all-in-one/target/all-in-one-1.0-SNAPSHOT.jar <outputdir>

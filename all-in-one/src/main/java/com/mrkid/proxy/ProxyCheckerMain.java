@@ -60,7 +60,8 @@ public class ProxyCheckerMain {
 
             List<Proxy> proxies = new ArrayList<>(context.getBean("cnProxyQueue", BlockingQueue.class));
 
-            String ip = AddressUtils.getMyIp();
+            String ip = context.getBean("originIp", String.class);
+            String proxyCheckUrl = context.getBean("proxyCheckUrl", String.class);
 
             final ProxyChecker proxyChecker = context.getBean(ProxyChecker.class);
 
@@ -72,7 +73,7 @@ public class ProxyCheckerMain {
             final ObjectMapper objectMapper = new ObjectMapper();
             try (final PrintWriter jsonWriter = new PrintWriter(new FileWriter(allProxyInJsonFormat));
                  final PrintWriter squidWriter = new PrintWriter(new FileWriter(highAnonymityInSquidFormat))) {
-                proxyChecker.check(ip, String.format("http://%s:8080/proxy-check", ip), proxies)
+                proxyChecker.check(ip, proxyCheckUrl, proxies)
                         .stream().forEach(line -> {
                     try {
                         jsonWriter.println(objectMapper.writeValueAsString(line));

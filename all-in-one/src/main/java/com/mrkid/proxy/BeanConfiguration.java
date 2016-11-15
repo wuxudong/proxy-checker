@@ -38,4 +38,9 @@ public class BeanConfiguration {
         logger.info("originIp " + originIp);
         return originIp;
     }
+
+    @Bean
+    public String proxyCheckUrl(String originIp) {
+        return String.format("http://%s:8080/proxy-check", originIp);
+    }
 }

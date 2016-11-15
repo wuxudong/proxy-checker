@@ -1,8 +1,8 @@
 # proxy-checker
 It will 
 
-* crawl proxies in cn-proxy.com, you can also add other proxy website as you like.
-* check proxies availability,
+* crawl proxies from cn-proxy.com, you can also add other proxy website as you like.
+* check proxies availability
 * figure out their type
   * TRANSPARENT_PROXY
   * ANONYMOUS_PROXY

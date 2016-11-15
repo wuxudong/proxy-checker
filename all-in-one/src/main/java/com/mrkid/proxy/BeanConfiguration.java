@@ -16,7 +16,7 @@ import java.net.UnknownHostException;
  */
 @Configuration
 public class BeanConfiguration {
-    @Value("isEc2")
+    @Value("${isEc2}")
     private boolean isEc2 = false;
 
     @Bean

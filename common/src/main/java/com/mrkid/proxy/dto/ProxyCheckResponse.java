@@ -10,10 +10,10 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Data
 public class ProxyCheckResponse {
-    public static int TRANSPARENT_PROXY = 1;
-    public static int ANONYMOUS_PROXY = 2;
-    public static int DISTORTING_PROXY = 3;
-    public static int HIGH_ANONYMITY_PROXY = 4;
+    public static final int TRANSPARENT_PROXY = 1;
+    public static final int ANONYMOUS_PROXY = 2;
+    public static final int DISTORTING_PROXY = 3;
+    public static final int HIGH_ANONYMITY_PROXY = 4;
 
 
     private String originIp;

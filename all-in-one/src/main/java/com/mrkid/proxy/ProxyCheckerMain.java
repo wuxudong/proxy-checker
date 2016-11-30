@@ -20,6 +20,8 @@ import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import io.reactivex.Flowable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -44,6 +46,10 @@ import java.util.stream.Collectors;
 @SpringBootApplication
 public class ProxyCheckerMain {
     private final static ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final Logger logger = LoggerFactory.getLogger(ProxyCheckerMain.class);
+
+
 
     public static void main(String[] args) throws Exception {
         {
@@ -153,7 +159,7 @@ public class ProxyCheckerMain {
 
             mergedProxies.addAll(proxies);
 
-            System.out.println("proxies need to be checked :" + proxies);
+            logger.info(proxies.size() + " proxies need to be checked :" + proxies);
 
             // check proxies
             String ip = context.getBean("originIp", String.class);

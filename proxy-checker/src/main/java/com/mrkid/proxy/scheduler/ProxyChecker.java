@@ -56,6 +56,9 @@ public class ProxyChecker {
 
         HttpContext httpContext = HttpClientContext.create();
 
+
+        logger.info("check proxy: " + proxy);
+
         if (proxy.getSchema().equalsIgnoreCase("socks5") || proxy.getSchema().equalsIgnoreCase("socks4")) {
             httpContext.setAttribute("socks.address", new InetSocketAddress(proxy.getHost(), proxy.getPort()));
         } else if (proxy.getSchema().equalsIgnoreCase("http") || proxy.getSchema().equalsIgnoreCase("https")) {
@@ -112,6 +115,8 @@ public class ProxyChecker {
                     if (error != null) {
                         emitter.onError(error);
                     } else {
+                        logger.info("check result: " + result);
+
                         emitter.onNext(result);
                         emitter.onComplete();
                     }

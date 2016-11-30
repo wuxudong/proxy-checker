@@ -11,23 +11,12 @@
     </parent>
 
     <groupId>com.mrkid</groupId>
-    <artifactId>cn-proxy-crawler</artifactId>
+    <artifactId>xici-crawler</artifactId>
 
     <dependencies>
-
         <dependency>
             <groupId>com.mrkid</groupId>
             <artifactId>common</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.mrkid</groupId>
-            <artifactId>crawl4j-utils</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>edu.uci.ics</groupId>
-            <artifactId>crawler4j</artifactId>
         </dependency>
 
         <dependency>

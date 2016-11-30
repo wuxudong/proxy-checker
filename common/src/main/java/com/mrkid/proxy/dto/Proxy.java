@@ -21,4 +21,6 @@ public class Proxy {
     private String location;
     private Date lastCheckSuccess;
     private Date lastCheckFail;
+
+    private String source = "";
 }

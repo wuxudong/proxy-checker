@@ -11,7 +11,7 @@
     </parent>
 
     <groupId>com.mrkid</groupId>
-    <artifactId>cn-proxy-crawler</artifactId>
+    <artifactId>ip3366-crawler</artifactId>
 
     <dependencies>
 

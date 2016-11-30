@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mrkid.proxy.dto.Proxy;
 import com.mrkid.proxy.dto.ProxyCheckResponse;
+import io.reactivex.Flowable;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -23,10 +24,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Semaphore;
-import java.util.stream.Collectors;
 
 /**
  * User: xudong
@@ -37,41 +35,18 @@ import java.util.stream.Collectors;
 public class ProxyChecker {
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private final int concurrentPermits = 100;
     @Autowired
     private CloseableHttpAsyncClient httpclient;
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyChecker.class);
 
-    public List<ProxyCheckResponse> check(String originIp, String proxyCheckerUrl, List<Proxy> proxies) {
-
-        Semaphore semaphore = new Semaphore(concurrentPermits);
-        final List<CompletableFuture<ProxyCheckResponse>> futures = proxies.stream().map(proxy -> {
-
-                    try {
-                        semaphore.acquire();
-                        return getProxyResponse(originIp, proxyCheckerUrl, proxy)
-                                .whenComplete((t, u) -> semaphore.release());
-                    } catch (InterruptedException e) {
-
-                        logger.error("unable to acquire semaphore", e);
-
-                        final CompletableFuture<ProxyCheckResponse> future = new CompletableFuture<>();
-                        future.complete(new ProxyCheckResponse("", "", "", proxy, false));
-                        return future;
-                    }
-                }
-
-        ).collect(Collectors.toList());
-
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
-                .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList())).join();
-
-
+    public Flowable<ProxyCheckResponse> getProxyResponse(String originIp,
+                                                         String proxyCheckerUrl, Proxy proxy) {
+        return toFlowable(asyncCheck(originIp, proxyCheckerUrl, proxy));
     }
 
-    private CompletableFuture<ProxyCheckResponse> getProxyResponse(String originIp,
-                                                                   String proxyCheckerUrl, Proxy proxy) {
+    private CompletableFuture<ProxyCheckResponse> asyncCheck(String originIp,
+                                                             String proxyCheckerUrl, Proxy proxy) {
 
         CompletableFuture<ProxyCheckResponse> promise = new CompletableFuture<>();
 
@@ -79,9 +54,7 @@ public class ProxyChecker {
 
         final HttpPost request = new HttpPost(proxyCheckerUrl + "?originIp=" + originIp);
 
-
         HttpContext httpContext = HttpClientContext.create();
-
 
         if (proxy.getSchema().equalsIgnoreCase("socks5") || proxy.getSchema().equalsIgnoreCase("socks4")) {
             httpContext.setAttribute("socks.address", new InetSocketAddress(proxy.getHost(), proxy.getPort()));
@@ -131,5 +104,17 @@ public class ProxyChecker {
         });
 
         return promise;
+    }
+
+    private <T> Flowable<T> toFlowable(CompletableFuture<T> future) {
+        return Flowable.<T>generate(emitter ->
+                future.whenComplete((result, error) -> {
+                    if (error != null) {
+                        emitter.onError(error);
+                    } else {
+                        emitter.onNext(result);
+                        emitter.onComplete();
+                    }
+                })).onExceptionResumeNext(Flowable.empty());
     }
 }

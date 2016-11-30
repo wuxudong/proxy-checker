@@ -31,6 +31,51 @@
         </dependency>
 
         <dependency>
+            <groupId>com.mrkid</groupId>
+            <artifactId>haoip-crawler</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mrkid</groupId>
+            <artifactId>coobobo-crawler</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mrkid</groupId>
+            <artifactId>goubanjia-crawler</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mrkid</groupId>
+            <artifactId>ip3366-crawler</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mrkid</groupId>
+            <artifactId>kuaidaili-crawler</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mrkid</groupId>
+            <artifactId>kxdaili-crawler</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mrkid</groupId>
+            <artifactId>p66ip-crawler</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mrkid</groupId>
+            <artifactId>p881free-crawler</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mrkid</groupId>
+            <artifactId>xici-crawler</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>

@@ -1,4 +1,4 @@
-package com.mrkid.proxy.cnproxy;
+package com.mrkid.proxy.goubanjia;
 
 import com.mrkid.proxy.dto.Proxy;
 import com.mrkid.proxy.dto.Source;
@@ -24,21 +24,20 @@ import java.util.stream.Collectors;
  * Date: 03/11/2016
  * Time: 12:47 PM
  */
-public class CnProxyCrawler extends WebCrawler {
+public class GoubanjiaCrawler extends WebCrawler {
 
-    public static final String SEED = "http://cn-proxy.com/";
-    public static final String STORE_ROOT = "./crawl/cnproxy/root";
+    public static final String STORE_ROOT = "./crawl/goubanjia/root";
+    public static final String SEED = "http://www.goubanjia.com/free/index.shtml";
 
     private BlockingQueue<Proxy> outputQueue;
 
-    public CnProxyCrawler(BlockingQueue<Proxy> outputQueue) {
+    public GoubanjiaCrawler(BlockingQueue<Proxy> outputQueue) {
         this.outputQueue = outputQueue;
     }
 
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
-        String anchor = url.getAnchor();
-        return anchor != null && anchor.equals("全球范围代理服务器");
+        return url.getURL().startsWith("http://www.goubanjia.com/free/");
     }
 
     /**
@@ -55,7 +54,7 @@ public class CnProxyCrawler extends WebCrawler {
             String html = htmlParseData.getHtml();
 
             final Document doc = Jsoup.parse(html);
-            final Elements tables = doc.select("table.sortable");
+            final Elements tables = doc.select("#list > table");
 
             final List<Proxy> proxies = tables.stream().map(table -> extractProxies(table)).flatMap(l -> l.stream())
                     .collect(Collectors.toList());
@@ -75,28 +74,19 @@ public class CnProxyCrawler extends WebCrawler {
             int port = 0;
 
             String location = null;
-            Date lastCheckSuccess = null;
 
             Elements cells = row.select("td");
 
             for (int i = 0; i < size; i++) {
-                String id = header.get(i).id();
-                switch (id) {
-                    case "ip":
-                        host = cells.get(i).text();
+                String headerName = header.get(i).text();
+                switch (headerName) {
+                    case "IP:PORT":
+                        final String[] token = cells.get(i).text().split(":");
+                        host = token[0];
+                        port = Integer.valueOf(token[1]);
                         break;
-                    case "port":
-                        port = Integer.valueOf(cells.get(i).text());
-                        break;
-                    case "location":
+                    case "IP归属地":
                         location = cells.get(i).text();
-                        break;
-                    case "lastcheck":
-                        try {
-                            lastCheckSuccess = DateUtils.parseDate(cells.get(i).text(), "yyyy-MM-dd HH:MM:ss");
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
                         break;
                     default:
                 }
@@ -109,12 +99,11 @@ public class CnProxyCrawler extends WebCrawler {
 
             Proxy proxy = new Proxy("http", host, port);
             proxy.setLocation(location);
-            proxy.setLastCheckSuccess(lastCheckSuccess);
 
-            proxy.setSource(Source.CNPROXY.name());
+            proxy.setSource(Source.GOUBANJIA.name());
+
 
             return proxy;
         }).filter(p -> p != null).collect(Collectors.toList());
     }
-
 }

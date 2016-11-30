@@ -16,6 +16,16 @@
         <module>all-in-one</module>
         <module>proxy-checker</module>
         <module>common</module>
+        <module>haoip-crawler</module>
+        <module>p881free-crawler</module>
+        <module>kxdaili-crawler</module>
+        <module>goubanjia-crawler</module>
+        <module>ip3366-crawler</module>
+        <module>coobobo-crawler</module>
+        <module>p66ip-crawler</module>
+        <module>kuaidaili-crawler</module>
+        <module>xici-crawler</module>
+
         <!--<module>client</module>-->
         <module>cn-proxy-crawler</module>
     </modules>
@@ -51,7 +61,69 @@
 
             <dependency>
                 <groupId>com.mrkid</groupId>
+                <artifactId>haoip-crawler</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mrkid</groupId>
+                <artifactId>p881free-crawler</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mrkid</groupId>
+                <artifactId>goubanjia-crawler</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mrkid</groupId>
+                <artifactId>ip3366-crawler</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.mrkid</groupId>
+                <artifactId>kxdaili-crawler</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.mrkid</groupId>
+                <artifactId>coobobo-crawler</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mrkid</groupId>
+                <artifactId>p66ip-crawler</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mrkid</groupId>
+                <artifactId>kuaidaili-crawler</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mrkid</groupId>
+                <artifactId>xici-crawler</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mrkid</groupId>
                 <artifactId>web</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mrkid</groupId>
+                <artifactId>crawl4j-utils</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -61,6 +133,17 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>edu.uci.ics</groupId>
+                <artifactId>crawler4j</artifactId>
+                <version>4.2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>1.10.1</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -97,6 +180,18 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>2.4</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.reactivex.rxjava2</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>2.0.1</version>
+
+            </dependency>
+            <dependency>
+                <groupId>org.reactivestreams</groupId>
+                <artifactId>reactive-streams</artifactId>
+                <version>1.0.0</version>
             </dependency>
 
             <dependency>

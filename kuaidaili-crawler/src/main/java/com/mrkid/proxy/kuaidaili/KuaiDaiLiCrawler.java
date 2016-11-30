@@ -1,4 +1,4 @@
-package com.mrkid.proxy.cnproxy;
+package com.mrkid.proxy.kuaidaili;
 
 import com.mrkid.proxy.dto.Proxy;
 import com.mrkid.proxy.dto.Source;
@@ -17,6 +17,8 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -24,21 +26,36 @@ import java.util.stream.Collectors;
  * Date: 03/11/2016
  * Time: 12:47 PM
  */
-public class CnProxyCrawler extends WebCrawler {
+public class KuaiDaiLiCrawler extends WebCrawler {
 
-    public static final String SEED = "http://cn-proxy.com/";
-    public static final String STORE_ROOT = "./crawl/cnproxy/root";
+    public static final String STORE_ROOT = "./crawl/kuaidaili/root";
+    public static final String SEED = "http://www.kuaidaili.com/free/";
 
     private BlockingQueue<Proxy> outputQueue;
 
-    public CnProxyCrawler(BlockingQueue<Proxy> outputQueue) {
+    private boolean crawlHistory = false;
+
+    private final Pattern pagePattern = Pattern.compile("http://www.kuaidaili.com/free/[^/]+/(\\d+)/");
+
+    public KuaiDaiLiCrawler(BlockingQueue<Proxy> outputQueue, boolean crawlHistory) {
         this.outputQueue = outputQueue;
+        this.crawlHistory = crawlHistory;
     }
 
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
-        String anchor = url.getAnchor();
-        return anchor != null && anchor.equals("全球范围代理服务器");
+        final Matcher matcher = pagePattern.matcher(url.getURL());
+        if (!matcher.matches()) {
+            return false;
+        } else {
+            if (crawlHistory) {
+                return true;
+            } else {
+                int page = Integer.valueOf(matcher.group(1));
+
+                return page < 10;
+            }
+        }
     }
 
     /**
@@ -55,12 +72,12 @@ public class CnProxyCrawler extends WebCrawler {
             String html = htmlParseData.getHtml();
 
             final Document doc = Jsoup.parse(html);
-            final Elements tables = doc.select("table.sortable");
+            final Elements tables = doc.select("#list table");
 
             final List<Proxy> proxies = tables.stream().map(table -> extractProxies(table)).flatMap(l -> l.stream())
                     .collect(Collectors.toList());
 
-            proxies.forEach(p->outputQueue.offer(p));
+            proxies.forEach(p -> outputQueue.offer(p));
         }
     }
 
@@ -80,21 +97,21 @@ public class CnProxyCrawler extends WebCrawler {
             Elements cells = row.select("td");
 
             for (int i = 0; i < size; i++) {
-                String id = header.get(i).id();
-                switch (id) {
-                    case "ip":
+                String headerName = header.get(i).text();
+                switch (headerName) {
+                    case "IP":
                         host = cells.get(i).text();
                         break;
-                    case "port":
+                    case "PORT":
                         port = Integer.valueOf(cells.get(i).text());
                         break;
-                    case "location":
+                    case "位置":
                         location = cells.get(i).text();
                         break;
-                    case "lastcheck":
+                    case "最后验证时间":
                         try {
                             lastCheckSuccess = DateUtils.parseDate(cells.get(i).text(), "yyyy-MM-dd HH:MM:ss");
-                        } catch (ParseException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                         break;
@@ -111,7 +128,7 @@ public class CnProxyCrawler extends WebCrawler {
             proxy.setLocation(location);
             proxy.setLastCheckSuccess(lastCheckSuccess);
 
-            proxy.setSource(Source.CNPROXY.name());
+            proxy.setSource(Source.KUAIDAILI.name());
 
             return proxy;
         }).filter(p -> p != null).collect(Collectors.toList());

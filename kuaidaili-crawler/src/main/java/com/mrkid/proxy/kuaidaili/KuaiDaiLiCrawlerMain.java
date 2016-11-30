@@ -16,8 +16,7 @@ public class KuaiDaiLiCrawlerMain {
     public static void main(String[] args) throws Exception {
         BlockingQueue<Proxy> proxies = new LinkedBlockingQueue<>();
 
-        CrawlController crawlController = Crawl4jUtils.newCrawlController();
-        crawlController.getConfig().setCrawlStorageFolder(KuaiDaiLiCrawler.STORE_ROOT);
+        CrawlController crawlController = Crawl4jUtils.newCrawlController(KuaiDaiLiCrawler.STORE_ROOT);
         crawlController.addSeed(KuaiDaiLiCrawler.SEED);
 
 

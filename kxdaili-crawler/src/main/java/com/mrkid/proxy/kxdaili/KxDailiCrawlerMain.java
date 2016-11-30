@@ -18,8 +18,7 @@ public class KxDailiCrawlerMain {
     public static void main(String[] args) throws Exception {
         BlockingQueue<Proxy> proxies = new LinkedBlockingQueue<>();
 
-        CrawlController crawlController = Crawl4jUtils.newCrawlController();
-        crawlController.getConfig().setCrawlStorageFolder(KxDailiCrawler.STORE_ROOT);
+        CrawlController crawlController = Crawl4jUtils.newCrawlController(KxDailiCrawler.STORE_ROOT);
         crawlController.addSeed(KxDailiCrawler.SEED);
 
         int numberOfCrawlers = 1;

@@ -16,8 +16,7 @@ public class P66IPCrawlerMain {
     public static void main(String[] args) throws Exception {
         BlockingQueue<Proxy> proxies = new LinkedBlockingQueue<>();
 
-        CrawlController crawlController = Crawl4jUtils.newCrawlController();
-        crawlController.getConfig().setCrawlStorageFolder(P66IPCrawler.STORE_ROOT);
+        CrawlController crawlController = Crawl4jUtils.newCrawlController(P66IPCrawler.STORE_ROOT);
         crawlController.addSeed(P66IPCrawler.SEED);
 
         int numberOfCrawlers = 1;

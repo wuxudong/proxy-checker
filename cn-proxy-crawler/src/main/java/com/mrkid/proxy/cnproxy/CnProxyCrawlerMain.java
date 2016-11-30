@@ -16,9 +16,8 @@ public class CnProxyCrawlerMain {
     public static void main(String[] args) throws Exception {
         BlockingQueue<Proxy> proxies = new LinkedBlockingQueue<>();
 
-        CrawlController crawlController = Crawl4jUtils.newCrawlController();
+        CrawlController crawlController = Crawl4jUtils.newCrawlController(CnProxyCrawler.STORE_ROOT);
 
-        crawlController.getConfig().setCrawlStorageFolder(CnProxyCrawler.STORE_ROOT);
         crawlController.addSeed(CnProxyCrawler.SEED);
 
         int numberOfCrawlers = 1;

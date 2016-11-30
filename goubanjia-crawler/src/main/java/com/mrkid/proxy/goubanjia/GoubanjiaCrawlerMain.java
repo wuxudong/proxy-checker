@@ -16,8 +16,7 @@ public class GoubanjiaCrawlerMain {
     public static void main(String[] args) throws Exception {
         BlockingQueue<Proxy> proxies = new LinkedBlockingQueue<>();
 
-        CrawlController crawlController = Crawl4jUtils.newCrawlController();
-        crawlController.getConfig().setCrawlStorageFolder(GoubanjiaCrawler.STORE_ROOT);
+        CrawlController crawlController = Crawl4jUtils.newCrawlController(GoubanjiaCrawler.STORE_ROOT);
         crawlController.addSeed(GoubanjiaCrawler.SEED);
 
         int numberOfCrawlers = 1;

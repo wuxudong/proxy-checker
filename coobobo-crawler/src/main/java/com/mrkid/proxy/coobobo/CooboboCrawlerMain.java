@@ -16,8 +16,7 @@ public class CooboboCrawlerMain {
     public static void main(String[] args) throws Exception {
         BlockingQueue<Proxy> proxies = new LinkedBlockingQueue<>();
 
-        CrawlController crawlController = Crawl4jUtils.newCrawlController();
-        crawlController.getConfig().setCrawlStorageFolder(CooboboCrawler.STORE_ROOT);
+        CrawlController crawlController = Crawl4jUtils.newCrawlController(CooboboCrawler.STORE_ROOT);
         crawlController.addSeed(CooboboCrawler.SEED);
 
         int numberOfCrawlers = 1;

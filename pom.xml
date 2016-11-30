@@ -24,7 +24,9 @@
         <module>coobobo-crawler</module>
         <module>p66ip-crawler</module>
         <module>kuaidaili-crawler</module>
+
         <module>xici-crawler</module>
+        <module>crawler4j-utils</module>
 
         <!--<module>client</module>-->
         <module>cn-proxy-crawler</module>
@@ -123,7 +125,7 @@
 
             <dependency>
                 <groupId>com.mrkid</groupId>
-                <artifactId>crawl4j-utils</artifactId>
+                <artifactId>crawler4j-utils</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

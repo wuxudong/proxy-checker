@@ -22,7 +22,7 @@
 
         <dependency>
             <groupId>com.mrkid</groupId>
-            <artifactId>crawl4j-utils</artifactId>
+            <artifactId>crawler4j-utils</artifactId>
         </dependency>
 
         <dependency>

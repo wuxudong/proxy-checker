@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.mrkid</groupId>
-    <artifactId>crawl4j-utils</artifactId>
+    <artifactId>crawler4j-utils</artifactId>
 
     <parent>
         <groupId>com.mrkid</groupId>

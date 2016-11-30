@@ -81,12 +81,16 @@ public class GoubanjiaCrawler extends WebCrawler {
                 String headerName = header.get(i).text();
                 switch (headerName) {
                     case "IP:PORT":
-
                         final Element address = cells.get(i);
-                        address.select("*[style*=display:none]").remove();
+
+                        final String before = address.toString();
+                        address.select("*[style~=display:\\s*none]").remove();
+
                         final String[] token = address.text().replaceAll("\\s", "").split(":");
                         host = token[0];
                         port = Integer.valueOf(token[1]);
+
+                        logger.info("extract " + host + ":" + port + " from " + before);
                         break;
                     case "IP归属地":
                         location = cells.get(i).text();

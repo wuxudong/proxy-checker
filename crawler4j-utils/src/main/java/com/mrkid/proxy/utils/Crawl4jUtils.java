@@ -12,8 +12,9 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
  * Time: 2:05 PM
  */
 public class Crawl4jUtils {
-    public static CrawlController newCrawlController() throws Exception {
+    public static CrawlController newCrawlController(String storeRoot) throws Exception {
         CrawlConfig config = new CrawlConfig();
+        config.setCrawlStorageFolder(storeRoot);
 
         PageFetcher pageFetcher = new PageFetcher(config);
         RobotstxtConfig robotstxtConfig = new RobotstxtConfig();

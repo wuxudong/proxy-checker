@@ -153,6 +153,8 @@ public class ProxyCheckerMain {
 
             mergedProxies.addAll(proxies);
 
+            System.out.println(proxies.size() + " proxies need to be checked");
+
             // check proxies
             String ip = context.getBean("originIp", String.class);
             String proxyCheckUrl = context.getBean("proxyCheckUrl", String.class);
@@ -225,12 +227,11 @@ public class ProxyCheckerMain {
             .WebCrawlerFactory<WebCrawler> factory) {
         CrawlController crawlController = null;
         try {
-            crawlController = Crawl4jUtils.newCrawlController();
+            crawlController = Crawl4jUtils.newCrawlController(storeRoot);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        crawlController.getConfig().setCrawlStorageFolder(storeRoot);
         crawlController.getConfig().setPolitenessDelay(politenessDelay);
 
         crawlController.addSeed(seed);

@@ -159,7 +159,7 @@ public class ProxyCheckerMain {
 
             mergedProxies.addAll(proxies);
 
-            logger.info(proxies.size() + " proxies need to be checked :" + proxies);
+            logger.info(mergedProxies.size() + " proxies need to be checked :" + mergedProxies);
 
             // check proxies
             String ip = context.getBean("originIp", String.class);

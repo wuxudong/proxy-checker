@@ -110,7 +110,7 @@ public class ProxyChecker {
     }
 
     private <T> Flowable<T> toFlowable(CompletableFuture<T> future) {
-        return Flowable.<T>generate(emitter ->
+        return Flowable.<T>defer(() -> emitter ->
                 future.whenComplete((result, error) -> {
                     if (error != null) {
                         emitter.onError(error);

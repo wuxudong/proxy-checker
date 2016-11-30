@@ -153,7 +153,7 @@ public class ProxyCheckerMain {
 
             mergedProxies.addAll(proxies);
 
-            System.out.println(proxies.size() + " proxies need to be checked");
+            System.out.println("proxies need to be checked :" + proxies);
 
             // check proxies
             String ip = context.getBean("originIp", String.class);

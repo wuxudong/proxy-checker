@@ -260,11 +260,11 @@ public class ProxyCheckerMain {
                         () -> new Ip3366Crawler(proxies)));
         threads.add(ip3366CrawlerThread);
 
-        // kuaidaili is sensitive to high frequency visit.
-        final Thread kuaidailiCrawlerThread = new Thread(() ->
-                crawl(KuaiDaiLiCrawler.STORE_ROOT, KuaiDaiLiCrawler.SEED, 2000,
-                        () -> new KuaiDaiLiCrawler(proxies, false)));
-        threads.add(kuaidailiCrawlerThread);
+        // kuaidaili is sensitive to high frequency visit. proxy quality is too bad, always unavailable
+//        final Thread kuaidailiCrawlerThread = new Thread(() ->
+//                crawl(KuaiDaiLiCrawler.STORE_ROOT, KuaiDaiLiCrawler.SEED, 2000,
+//                        () -> new KuaiDaiLiCrawler(proxies, false)));
+//        threads.add(kuaidailiCrawlerThread);
 
         // kxdaili
         final Thread kxdailiCrawlerThread = new Thread(() ->

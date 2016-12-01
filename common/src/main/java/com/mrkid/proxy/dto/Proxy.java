@@ -12,7 +12,7 @@ import java.util.Date;
  * Time: 6:16 PM
  */
 @Data
-@EqualsAndHashCode(of = {"schema", "host", "port"})
+@EqualsAndHashCode(of = {"schema", "host"})
 public class Proxy {
     private final String schema;
     private final String host;

@@ -20,7 +20,7 @@ public class HttpAsynClientConfiguration {
     @Bean
     public CloseableHttpAsyncClient httpAsyncClient() {
 
-        final int TIMEOUT = 2 * 1000;
+        final int TIMEOUT = 10 * 1000;
         // reactor config
         IOReactorConfig reactorConfig = IOReactorConfig.custom()
                 .setConnectTimeout(TIMEOUT)
@@ -29,7 +29,7 @@ public class HttpAsynClientConfiguration {
         HttpAsyncClientBuilder asyncClientBuilder = HttpAsyncClientBuilder.create();
         asyncClientBuilder.setDefaultIOReactorConfig(reactorConfig);
 
-        asyncClientBuilder.setMaxConnPerRoute(1000).setMaxConnTotal(1000);
+        asyncClientBuilder.setMaxConnPerRoute(5000).setMaxConnTotal(5000);
 
         final CloseableHttpAsyncClient httpAsyncClient = asyncClientBuilder.build();
         httpAsyncClient.start();

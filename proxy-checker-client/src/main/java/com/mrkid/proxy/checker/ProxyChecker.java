@@ -96,7 +96,7 @@ public class ProxyChecker {
 
             @Override
             public void failed(Exception e) {
-                logger.error("failure of  " + request.getEntity(), e);
+                logger.error("failure of  " + request.getEntity() + " caused by " + e.getMessage());
                 promise.complete(errorResponse);
             }
 

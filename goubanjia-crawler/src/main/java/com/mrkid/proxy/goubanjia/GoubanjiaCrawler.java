@@ -90,7 +90,7 @@ public class GoubanjiaCrawler extends WebCrawler {
                         host = token[0];
                         port = Integer.valueOf(token[1]);
 
-                        logger.info("extract " + host + ":" + port + " from " + before);
+                        logger.debug("extract " + host + ":" + port + " from " + before);
                         break;
                     case "IP归属地":
                         location = cells.get(i).text();

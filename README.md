@@ -19,13 +19,16 @@ It will
 * run crawler & checker client
  
     * only run crawler(which doesn't need checker server)     
+    
     `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a crawl`
 
 
     * only run checker(which need checker server) 
+    
     `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a check -s http://[checker-server-ip]:8080/proxy-check`
     
     * run them both
+    
     `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a all -s http://[checker-server-ip]:8080/proxy-check`
 
 

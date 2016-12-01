@@ -29,7 +29,7 @@ public class HttpAsynClientConfiguration {
         HttpAsyncClientBuilder asyncClientBuilder = HttpAsyncClientBuilder.create();
         asyncClientBuilder.setDefaultIOReactorConfig(reactorConfig);
 
-        asyncClientBuilder.setMaxConnPerRoute(5000).setMaxConnTotal(5000);
+        asyncClientBuilder.setMaxConnPerRoute(1000).setMaxConnTotal(1000);
 
         final CloseableHttpAsyncClient httpAsyncClient = asyncClientBuilder.build();
         httpAsyncClient.start();

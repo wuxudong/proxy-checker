@@ -248,11 +248,11 @@ public class ProxyCheckerMain {
                         () -> new CooboboCrawler(proxies, false)));
         threads.add(cooboboCrawlerThread);
 
-        // goubanjia
-        final Thread goubanjiaCrawlerThread = new Thread(() ->
-                crawl(GoubanjiaCrawler.STORE_ROOT, GoubanjiaCrawler.SEED, 0,
-                        () -> new GoubanjiaCrawler(proxies)));
-        threads.add(goubanjiaCrawlerThread);
+        // goubanjia's proxy quality is too bad, always unavailable
+//        final Thread goubanjiaCrawlerThread = new Thread(() ->
+//                crawl(GoubanjiaCrawler.STORE_ROOT, GoubanjiaCrawler.SEED, 0,
+//                        () -> new GoubanjiaCrawler(proxies)));
+//        threads.add(goubanjiaCrawlerThread);
 
         // ip3366
         final Thread ip3366CrawlerThread = new Thread(() ->

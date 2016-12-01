@@ -13,7 +13,8 @@ import com.mrkid.proxy.kuaidaili.KuaiDaiLiCrawler;
 import com.mrkid.proxy.kxdaili.KxDailiCrawler;
 import com.mrkid.proxy.p66ip.P66IPCrawler;
 import com.mrkid.proxy.p881free.P881FreeCrawler;
-import com.mrkid.proxy.scheduler.ProxyChecker;
+import com.mrkid.proxy.checker.ProxyChecker;
+import com.mrkid.proxy.utils.AddressUtils;
 import com.mrkid.proxy.utils.Crawl4jUtils;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
@@ -48,29 +49,28 @@ public class ProxyCheckerMain {
         {
             Options options = new Options();
 
-            options.addOption("e", "isEc2", true,
-                    "[true|false] -> is this app running on ec2, required when using action check|all");
             options.addOption("a", "action", true,
                     "[crawl|check|all] -> only crawl proxies? only check already crawled proxies? or do both?");
+
+            options.addOption("s", "server", true,
+                    "you checker api url, something like http://serverip:8080/proxy-check. " +
+                            "required when action = check|all");
 
 
             CommandLineParser parser = new BasicParser();
             CommandLine cmd = parser.parse(options, args);
             HelpFormatter formatter = new HelpFormatter();
 
-            boolean isEc2 = "true".equalsIgnoreCase(cmd.getOptionValue("isEc2"));
 
             if (cmd.hasOption("action")) {
                 final String action = cmd.getOptionValue("action");
 
                 final ConfigurableApplicationContext context = SpringApplication.run(ProxyCheckerMain.class);
 
-                // check proxies
-                String ip = EnvironmentConfiguration.originIp(isEc2);
-                String proxyCheckUrl = EnvironmentConfiguration.proxyCheckUrl(ip);
-
                 final ProxyChecker proxyChecker = context.getBean(ProxyChecker.class);
 
+                String ip = AddressUtils.getMyPublicIp();
+                String proxyCheckUrl = cmd.getOptionValue("server");
 
                 File dataDirectory = new File("data");
                 if (!dataDirectory.exists()) {
@@ -108,7 +108,7 @@ public class ProxyCheckerMain {
 
                         break;
                     default:
-                        formatter.printHelp("", options);
+                        formatter.printHelp("java -jar all-in-one.jar", options);
                 }
 
                 context.close();

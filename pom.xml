@@ -13,8 +13,7 @@
 
 
     <modules>
-        <module>all-in-one</module>
-        <module>proxy-checker</module>
+
         <module>common</module>
         <module>haoip-crawler</module>
         <module>p881free-crawler</module>
@@ -27,7 +26,8 @@
 
         <module>xici-crawler</module>
         <module>crawler4j-utils</module>
-
+        <module>proxy-checker-server</module>
+        <module>proxy-checker-client</module>
         <!--<module>client</module>-->
         <module>cn-proxy-crawler</module>
     </modules>
@@ -46,12 +46,6 @@
             <dependency>
                 <groupId>com.mrkid</groupId>
                 <artifactId>common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.mrkid</groupId>
-                <artifactId>proxy-checker</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

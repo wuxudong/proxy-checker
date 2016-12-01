@@ -2,6 +2,7 @@ package com.mrkid.proxy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mrkid.proxy.checker.ProxyChecker;
 import com.mrkid.proxy.cnproxy.CnProxyCrawler;
 import com.mrkid.proxy.coobobo.CooboboCrawler;
 import com.mrkid.proxy.dto.Proxy;
@@ -13,7 +14,6 @@ import com.mrkid.proxy.kuaidaili.KuaiDaiLiCrawler;
 import com.mrkid.proxy.kxdaili.KxDailiCrawler;
 import com.mrkid.proxy.p66ip.P66IPCrawler;
 import com.mrkid.proxy.p881free.P881FreeCrawler;
-import com.mrkid.proxy.checker.ProxyChecker;
 import com.mrkid.proxy.utils.AddressUtils;
 import com.mrkid.proxy.utils.Crawl4jUtils;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
@@ -96,8 +96,8 @@ public class ProxyCheckerMain {
                         // load lastest crawl
                         final Set<Proxy> latestCrawl = loadLatestCrawl(historyDirectory);
                         // merge history
-                        Set<Proxy> merge = mergeHistory(latestCrawl, dataDirectory);
-                        checkAndSave(dataDirectory, merge, ip, proxyCheckUrl, proxyChecker);
+                        checkAndSave(dataDirectory, mergeHistory(latestCrawl, dataDirectory), ip, proxyCheckUrl,
+                                proxyChecker);
                         break;
                     case "all":
                         Set<Proxy> crawledProxies = new HashSet<>(crawl());
@@ -179,56 +179,46 @@ public class ProxyCheckerMain {
              final PrintWriter distortingSquidWriter = new PrintWriter(new FileWriter(distortingFile));
              final PrintWriter highAnonymitySquidWriter = new PrintWriter(new FileWriter(highAnonymityFile))
         ) {
-            Flowable<ProxyCheckResponse> flow = Flowable.fromIterable(checking).flatMap(p -> proxyChecker
-                    .getProxyResponse(ip, proxyCheckUrl, p), 1000);
+            Flowable.fromIterable(checking)
+                    .flatMap(p -> proxyChecker.getProxyResponse(ip, proxyCheckUrl, p), 1000)
+                    .doOnNext(p -> writeInJsonFormat(checkJsonWriter, p))
+                    .filter(p -> p.isValid())
+                    .doOnNext(p -> writeInJsonFormat(validJsonWriter, p))
+                    .filter(r -> "http".equalsIgnoreCase(r.getProxy().getSchema()))
+                    .doOnNext(p -> {
+                        switch (p.getProxyType()) {
+                            case ProxyCheckResponse.TRANSPARENT_PROXY:
+                                writeInSquidFormat(transparentSquidWriter, p);
+                                break;
 
+                            case ProxyCheckResponse.ANONYMOUS_PROXY:
+                                writeInSquidFormat(anonymousSquidWriter, p);
+                                break;
 
-            flow.doOnNext(p -> writeInJsonFormat(checkJsonWriter, p));
+                            case ProxyCheckResponse.DISTORTING_PROXY:
+                                writeInSquidFormat(distortingSquidWriter, p);
+                                break;
 
-            final Flowable<ProxyCheckResponse> validFlow = flow.filter(p -> p.isValid());
-            validFlow.doOnNext(p -> writeInJsonFormat(validJsonWriter, p));
+                            case ProxyCheckResponse.HIGH_ANONYMITY_PROXY:
+                                writeInSquidFormat(highAnonymitySquidWriter, p);
+                                break;
 
-            final Flowable<ProxyCheckResponse> httpFlow = validFlow.filter(r -> "http".equalsIgnoreCase(r.getProxy
-                    ().getSchema()));
-
-            httpFlow.doOnNext(p -> {
-                switch (p.getProxyType()) {
-                    case ProxyCheckResponse.TRANSPARENT_PROXY:
-                        writeInSquidFormat(transparentSquidWriter, p);
-                        break;
-
-                    case ProxyCheckResponse.ANONYMOUS_PROXY:
-                        writeInSquidFormat(anonymousSquidWriter, p);
-                        break;
-
-                    case ProxyCheckResponse.DISTORTING_PROXY:
-                        writeInSquidFormat(distortingSquidWriter, p);
-                        break;
-
-                    case ProxyCheckResponse.HIGH_ANONYMITY_PROXY:
-                        writeInSquidFormat(highAnonymitySquidWriter, p);
-                        break;
-
-                }
-            });
-
-            httpFlow.blockingSubscribe();
+                        }
+                    }).blockingSubscribe();
         }
 
         // remove .progress postfix
         Arrays.asList(validProgressingFile, checkResultFile, transparentFile, anonymousFile, distortingFile,
                 highAnonymityFile)
                 .forEach(f -> {
-                            try {
-                                final String name = f.getName();
-                                final String newName = name.substring(0, name.indexOf(".progress"));
-                                FileUtils.moveFile(f,
-                                        new File(f.getParent(), newName));
-                            } catch (IOException e) {
-                                logger.error("fail to rename file " + f.getPath(), e);
+                            final String name = f.getName();
+                            final String newName = name.substring(0, name.indexOf(".progress"));
+                            final File destFile = new File(f.getParent(), newName);
+                            if (destFile.exists()) {
+                                destFile.delete();
                             }
+                            f.renameTo(destFile);
                         }
-
                 );
     }
 

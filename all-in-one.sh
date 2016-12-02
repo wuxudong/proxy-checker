@@ -10,7 +10,7 @@ java -jar proxy-checker-client/target/proxy-checker-client-1.0-SNAPSHOT.jar -s h
 #remove all cache_peer
 sed -i.bak '/cache_peer/d' /etc/squid/squid.conf
 
-cat data/proxy.squid | grep HIGH_ANONYMITY | sed 's/#HIGH_ANONYMITY。*//' >> /etc/squid/squid.conf
+cat data/proxy.squid | grep HIGH_ANONYMITY | sed 's/#HIGH_ANONYMITY.*//' >> /etc/squid/squid.conf
 
 squid -k reconfigure
 

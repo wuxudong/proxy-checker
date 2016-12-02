@@ -10,12 +10,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Data
 public class ProxyCheckResponse {
-    public static final int TRANSPARENT_PROXY = 1;
-    public static final int ANONYMOUS_PROXY = 2;
-    public static final int DISTORTING_PROXY = 3;
-    public static final int HIGH_ANONYMITY_PROXY = 4;
-
-
     private String originIp;
     private String remoteIp;
     private String xForwardedFor;
@@ -23,7 +17,7 @@ public class ProxyCheckResponse {
 
     private boolean valid;
 
-    private int proxyType;
+    private ProxyType proxyType = ProxyType.UNKNOWN;
 
     public ProxyCheckResponse() {
     }
@@ -39,21 +33,22 @@ public class ProxyCheckResponse {
 
     public ProxyCheckResponse calculateProxyType() {
         if (StringUtils.isBlank(remoteIp)) {
-            proxyType = 0;
+            proxyType = ProxyType.UNKNOWN;
         }
 
         if (StringUtils.isBlank(xForwardedFor)) {
-            proxyType = HIGH_ANONYMITY_PROXY;
+            proxyType = ProxyType.HIGH_ANONYMITY_PROXY;
         } else {
             if (xForwardedFor.equals(originIp)) {
-                proxyType = TRANSPARENT_PROXY;
+                proxyType = ProxyType.TRANSPARENT_PROXY;
             } else if (xForwardedFor.equals(remoteIp)) {
-                proxyType = ANONYMOUS_PROXY;
+                proxyType = ProxyType.ANONYMOUS_PROXY;
             } else {
-                proxyType = DISTORTING_PROXY;
+                proxyType = ProxyType.DISTORTING_PROXY;
             }
         }
 
         return this;
     }
+
 }

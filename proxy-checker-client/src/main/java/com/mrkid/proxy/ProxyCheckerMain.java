@@ -163,20 +163,11 @@ public class ProxyCheckerMain {
 
         final File checkResultFile = new File(dataDirectory, "proxy.check.progress");
 
-        final File transparentFile = new File(dataDirectory, "transparent_proxy.squid.progress");
-
-        final File anonymousFile = new File(dataDirectory, "anonymous_proxy.squid.progress");
-
-        final File distortingFile = new File(dataDirectory, "distorting_proxy.squid.progress");
-
-        final File highAnonymityFile = new File(dataDirectory, "high_anonymity_proxy.squid.progress");
+        final File highAnonymityFile = new File(dataDirectory, "proxy.squid.progress");
 
 
         try (final PrintWriter checkJsonWriter = new PrintWriter(new FileWriter(checkResultFile));
              final PrintWriter validJsonWriter = new PrintWriter(new FileWriter(validProgressingFile));
-             final PrintWriter transparentSquidWriter = new PrintWriter(new FileWriter(transparentFile));
-             final PrintWriter anonymousSquidWriter = new PrintWriter(new FileWriter(anonymousFile));
-             final PrintWriter distortingSquidWriter = new PrintWriter(new FileWriter(distortingFile));
              final PrintWriter highAnonymitySquidWriter = new PrintWriter(new FileWriter(highAnonymityFile))
         ) {
             Flowable.fromIterable(checking)
@@ -185,30 +176,11 @@ public class ProxyCheckerMain {
                     .filter(p -> p.isValid())
                     .doOnNext(p -> writeInJsonFormat(validJsonWriter, p))
                     .filter(r -> "http".equalsIgnoreCase(r.getProxy().getSchema()))
-                    .doOnNext(p -> {
-                        switch (p.getProxyType()) {
-                            case ProxyCheckResponse.TRANSPARENT_PROXY:
-                                writeInSquidFormat(transparentSquidWriter, p);
-                                break;
-
-                            case ProxyCheckResponse.ANONYMOUS_PROXY:
-                                writeInSquidFormat(anonymousSquidWriter, p);
-                                break;
-
-                            case ProxyCheckResponse.DISTORTING_PROXY:
-                                writeInSquidFormat(distortingSquidWriter, p);
-                                break;
-
-                            case ProxyCheckResponse.HIGH_ANONYMITY_PROXY:
-                                writeInSquidFormat(highAnonymitySquidWriter, p);
-                                break;
-
-                        }
-                    }).blockingSubscribe();
+                    .doOnNext(p -> writeInSquidFormat(highAnonymitySquidWriter, p)).blockingSubscribe();
         }
 
         // remove .progress postfix
-        Arrays.asList(validProgressingFile, checkResultFile, transparentFile, anonymousFile, distortingFile,
+        Arrays.asList(validProgressingFile, checkResultFile,
                 highAnonymityFile)
                 .forEach(f -> {
                             final String name = f.getName();
@@ -248,17 +220,19 @@ public class ProxyCheckerMain {
                         () -> new CooboboCrawler(proxies, false)));
         threads.add(cooboboCrawlerThread);
 
-        // goubanjia's proxy quality is too bad, always unavailable
-//        final Thread goubanjiaCrawlerThread = new Thread(() ->
-//                crawl(GoubanjiaCrawler.STORE_ROOT, GoubanjiaCrawler.SEED, 0,
-//                        () -> new GoubanjiaCrawler(proxies)));
-//        threads.add(goubanjiaCrawlerThread);
 
         // ip3366
         final Thread ip3366CrawlerThread = new Thread(() ->
                 crawl(Ip3366Crawler.STORE_ROOT, Ip3366Crawler.SEED, 0,
                         () -> new Ip3366Crawler(proxies)));
         threads.add(ip3366CrawlerThread);
+
+        // goubanjia's proxy quality is too bad, always unavailable
+//        final Thread goubanjiaCrawlerThread = new Thread(() ->
+//                crawl(GoubanjiaCrawler.STORE_ROOT, GoubanjiaCrawler.SEED, 0,
+//                        () -> new GoubanjiaCrawler(proxies)));
+//        threads.add(goubanjiaCrawlerThread);
+
 
         // kuaidaili is sensitive to high frequency visit. proxy quality is too bad, always unavailable
 //        final Thread kuaidailiCrawlerThread = new Thread(() ->
@@ -353,8 +327,8 @@ public class ProxyCheckerMain {
     private static void writeInSquidFormat(PrintWriter writer, ProxyCheckResponse line) {
         writer.println(
                 String.format(
-                        "cache_peer %s parent %d 0 round-robin no-query connect-fail-limit=1",
-                        line.getProxy().getHost(), line.getProxy().getPort()));
+                        "cache_peer %s parent %d 0 round-robin no-query connect-fail-limit=1 #%s",
+                        line.getProxy().getHost(), line.getProxy().getPort(), line.getProxyType().name()));
     }
 
 }

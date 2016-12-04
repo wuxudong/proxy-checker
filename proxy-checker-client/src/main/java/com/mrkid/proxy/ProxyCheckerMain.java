@@ -181,7 +181,7 @@ public class ProxyCheckerMain {
                                 , "http://www.163.com", p);
 
                         return Flowable.zip(proxyCheckResponseFlowable, ip138Flowable, www163Flowable
-                                , (proxyCheckResponse, s, s2, s3) -> proxyCheckResponse)
+                                , (proxyCheckResponse, s, s2) -> proxyCheckResponse)
                                 .onExceptionResumeNext(Flowable.just(new ProxyCheckResponse("", "", "", p, false)));
 
 

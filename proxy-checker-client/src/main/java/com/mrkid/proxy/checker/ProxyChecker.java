@@ -40,17 +40,15 @@ public class ProxyChecker {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyChecker.class);
 
-    public Flowable<ProxyCheckResponse> getProxyResponse(String originIp,
+    public Flowable<String> getProxyResponse(String originIp,
                                                          String proxyCheckerUrl, Proxy proxy) {
         return toFlowable(asyncCheck(originIp, proxyCheckerUrl, proxy));
     }
 
-    private CompletableFuture<ProxyCheckResponse> asyncCheck(String originIp,
+    private CompletableFuture<String> asyncCheck(String originIp,
                                                              String proxyCheckerUrl, Proxy proxy) {
 
-        CompletableFuture<ProxyCheckResponse> promise = new CompletableFuture<>();
-
-        final ProxyCheckResponse errorResponse = new ProxyCheckResponse("", "", "", proxy, false);
+        CompletableFuture<String> promise = new CompletableFuture<>();
 
         final HttpPost request = new HttpPost(proxyCheckerUrl + "?originIp=" + originIp);
 
@@ -80,24 +78,22 @@ public class ProxyChecker {
             @Override
             public void completed(HttpResponse httpResponse) {
                 if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                    promise.complete(errorResponse);
+                    promise.completeExceptionally(new RuntimeException("status code is "+ httpResponse.getStatusLine().getStatusCode()));
                 } else {
                     try {
-                        final String value = IOUtils.toString(httpResponse.getEntity().getContent(), "utf-8");
-                        promise.complete(objectMapper.readValue(value, ProxyCheckResponse.class));
+                        promise.complete(IOUtils.toString(httpResponse.getEntity().getContent(), "utf-8"));
                     } catch (IOException e) {
                         logger.error("unable to parse check response of " + request.getEntity(), e);
 
-                        promise.complete(errorResponse);
+                        promise.completeExceptionally(e);
                     }
                 }
-
             }
 
             @Override
             public void failed(Exception e) {
                 logger.error("failure of  " + request.getEntity() + " caused by " + e.getMessage());
-                promise.complete(errorResponse);
+                promise.completeExceptionally(e);
             }
 
             @Override

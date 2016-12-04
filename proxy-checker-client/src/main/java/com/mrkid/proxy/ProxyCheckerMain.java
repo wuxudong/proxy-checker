@@ -7,10 +7,8 @@ import com.mrkid.proxy.cnproxy.CnProxyCrawler;
 import com.mrkid.proxy.coobobo.CooboboCrawler;
 import com.mrkid.proxy.dto.Proxy;
 import com.mrkid.proxy.dto.ProxyCheckResponse;
-import com.mrkid.proxy.goubanjia.GoubanjiaCrawler;
 import com.mrkid.proxy.haoip.HaoIPCrawler;
 import com.mrkid.proxy.ip3366.Ip3366Crawler;
-import com.mrkid.proxy.kuaidaili.KuaiDaiLiCrawler;
 import com.mrkid.proxy.kxdaili.KxDailiCrawler;
 import com.mrkid.proxy.p66ip.P66IPCrawler;
 import com.mrkid.proxy.p881free.P881FreeCrawler;
@@ -171,7 +169,25 @@ public class ProxyCheckerMain {
              final PrintWriter highAnonymitySquidWriter = new PrintWriter(new FileWriter(highAnonymityFile))
         ) {
             Flowable.fromIterable(checking)
-                    .flatMap(p -> proxyChecker.getProxyResponse(ip, proxyCheckUrl, p), 1000)
+                    .flatMap(p -> {
+                        final Flowable<ProxyCheckResponse> proxyCheckResponseFlowable =
+                                proxyChecker.getProxyResponse(ip, proxyCheckUrl, p)
+                                        .map(s -> objectMapper.readValue(s, ProxyCheckResponse.class));
+
+                        final Flowable<String> baiduFlowable = proxyChecker.getProxyResponse(ip, "http://www.baidu.com",
+                                p);
+                        final Flowable<String> ip138Flowable = proxyChecker.getProxyResponse(ip
+                                , "http://1212.ip138.com/ic.asp", p);
+
+                        final Flowable<String> www163Flowable = proxyChecker.getProxyResponse(ip
+                                , "http://www.163.com", p);
+
+                        return Flowable.zip(proxyCheckResponseFlowable, baiduFlowable, ip138Flowable, www163Flowable
+                                , (proxyCheckResponse, s, s2, s3) -> proxyCheckResponse)
+                                .onExceptionResumeNext(Flowable.just(new ProxyCheckResponse("", "", "", p, false)));
+
+
+                    }, 1000)
                     .doOnNext(p -> writeInJsonFormat(checkJsonWriter, p))
                     .filter(p -> p.isValid())
                     .doOnNext(p -> writeInJsonFormat(validJsonWriter, p))

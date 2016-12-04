@@ -174,8 +174,8 @@ public class ProxyCheckerMain {
                                 proxyChecker.getProxyResponse(ip, proxyCheckUrl, p)
                                         .map(s -> objectMapper.readValue(s, ProxyCheckResponse.class));
 
-                        final Flowable<String> baiduFlowable = proxyChecker.getProxyResponse(ip, "http://www.baidu.com",
-                                p);
+                        final Flowable<String> baiduFlowable =
+                                proxyChecker.getProxyResponse(ip, "https://www.baidu.com", p);
                         final Flowable<String> ip138Flowable = proxyChecker.getProxyResponse(ip
                                 , "http://1212.ip138.com/ic.asp", p);
 

@@ -55,7 +55,7 @@ public class ProxyChecker {
         HttpContext httpContext = HttpClientContext.create();
 
 
-        logger.info("check proxy: " + proxy);
+        logger.info("check proxy: " + proxy + " for url " + proxyCheckerUrl);
 
         if (proxy.getSchema().equalsIgnoreCase("socks5") || proxy.getSchema().equalsIgnoreCase("socks4")) {
             httpContext.setAttribute("socks.address", new InetSocketAddress(proxy.getHost(), proxy.getPort()));

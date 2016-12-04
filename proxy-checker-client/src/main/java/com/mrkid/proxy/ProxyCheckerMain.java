@@ -177,10 +177,10 @@ public class ProxyCheckerMain {
                         final Flowable<String> ip138Flowable = proxyChecker.getProxyResponse(ip
                                 , "http://1212.ip138.com/ic.asp", p);
 
-                        final Flowable<String> www163Flowable = proxyChecker.getProxyResponse(ip
-                                , "http://www.163.com", p);
+                        final Flowable<String> baiduFlowable = proxyChecker.generalGet(
+                                "http://www.baidu.com", p);
 
-                        return Flowable.zip(proxyCheckResponseFlowable, ip138Flowable, www163Flowable
+                        return Flowable.zip(proxyCheckResponseFlowable, baiduFlowable, ip138Flowable
                                 , (proxyCheckResponse, s, s2) -> proxyCheckResponse)
                                 .onExceptionResumeNext(Flowable.just(new ProxyCheckResponse("", "", "", p, false)));
 

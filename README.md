@@ -25,14 +25,8 @@ It will
 
     * only run checker(which need checker server) 
     
-    `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a check -s http://[checker-server-ip]:8080/proxy-check`
+    `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a check`
     
     * run them both
     
-    `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a all -s http://[checker-server-ip]:8080/proxy-check`
-
-
-* deploy checker server on any machine which has public ip
-       
- 
- `java -jar proxy-checker-server-1.0-SNAPSHOT.jar`
+    `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a all`

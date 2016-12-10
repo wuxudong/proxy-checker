@@ -1,21 +1,21 @@
 package com.mrkid.proxy.checker;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mrkid.proxy.dto.Proxy;
+import com.mrkid.proxy.dto.ProxyCheckResponse;
+import com.mrkid.proxy.dto.ProxyType;
 import io.reactivex.Flowable;
+import io.reactivex.processors.BehaviorProcessor;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.protocol.HttpContext;
 import org.slf4j.Logger;
@@ -25,6 +25,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -41,29 +45,57 @@ public class ProxyChecker {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyChecker.class);
 
-    public Flowable<String> getProxyResponse(String originIp,
-                                             String proxyCheckerUrl, Proxy proxy) {
-        final HttpPost request = new HttpPost(proxyCheckerUrl + "?originIp=" + originIp);
-        try {
-            request.setEntity(new StringEntity(objectMapper.writeValueAsString(proxy), ContentType.APPLICATION_JSON));
-        } catch (JsonProcessingException e) {
-        }
+    public Flowable<ProxyCheckResponse> getProxyResponse(String originIp, Proxy proxy) {
+        final Flowable<String> remoteIpFlow = toFlowable(asyncCheck(proxy, new HttpGet("http://httpbin.org/ip")));
 
-        return toFlowable(asyncCheck(proxyCheckerUrl, proxy, request));
+        final Flowable<String> headersFlow = toFlowable(asyncCheck(proxy, new HttpGet("http://httpbin.org/headers")));
+
+        return remoteIpFlow.zipWith(headersFlow, (remoteIpResponse, headersResponse) -> {
+            String remoteIp = objectMapper.readTree(remoteIpResponse).get("origin").asText();
+            final JsonNode headersNode = objectMapper.readTree(headersResponse).get("headers");
+
+            final Set<String> possibleHeaderNames = new HashSet<>(Arrays.asList("HTTP_VIA", "HTTP_X_FORWARDED_FOR",
+                    "HTTP_FORWARDED_FOR", "HTTP_X_FORWARDED", "HTTP_FORWARDED", "HTTP_CLIENT_IP",
+                    "HTTP_FORWARDED_FOR_IP", "VIA", "X_FORWARDED_FOR", "FORWARDED_FOR", "X_FORWARDED",
+                    "FORWARDED", "CLIENT_IP", "FORWARDED_FOR_IP", "HTTP_PROXY_CONNECTION"));
+
+
+            boolean highAnonymity = true;
+            final Iterator<String> fieldNames = headersNode.fieldNames();
+            while (fieldNames.hasNext()) {
+                if (possibleHeaderNames.contains(fieldNames.next().toUpperCase())) {
+                    highAnonymity = false;
+                }
+            }
+
+            ProxyCheckResponse proxyCheckResponse = new ProxyCheckResponse();
+            proxyCheckResponse.setProxy(proxy);
+            proxyCheckResponse.setOriginIp(originIp);
+            proxyCheckResponse.setRemoteIp(remoteIp);
+            proxyCheckResponse.setValid(true);
+            if (highAnonymity) {
+                proxyCheckResponse.setProxyType(ProxyType.HIGH_ANONYMITY_PROXY);
+            } else {
+                proxyCheckResponse.setProxyType(ProxyType.TRANSPARENT_PROXY);
+            }
+
+            return proxyCheckResponse;
+        });
+
     }
 
     public Flowable<String> generalGet(String targetUrl, Proxy proxy) {
         final HttpGet request = new HttpGet(targetUrl);
-        return toFlowable(asyncCheck(targetUrl, proxy, request));
+        return toFlowable(asyncCheck(proxy, request));
     }
 
-    private CompletableFuture<String> asyncCheck(String targetUrl, Proxy proxy, HttpRequestBase request) {
+    private CompletableFuture<String> asyncCheck(Proxy proxy, HttpRequestBase request) {
 
         CompletableFuture<String> promise = new CompletableFuture<>();
 
         HttpContext httpContext = HttpClientContext.create();
 
-        logger.info("check proxy: " + proxy + " for url " + targetUrl);
+        logger.info("check proxy: " + proxy + " for url " + request.getURI().toString());
 
         if (proxy.getSchema().equalsIgnoreCase("socks5") || proxy.getSchema().equalsIgnoreCase("socks4")) {
             httpContext.setAttribute("socks.address", new InetSocketAddress(proxy.getHost(), proxy.getPort()));
@@ -73,11 +105,14 @@ public class ProxyChecker {
                     .build();
 
             request.setConfig(config);
+
         }
 
         httpclient.execute(request, httpContext, new FutureCallback<HttpResponse>() {
             @Override
             public void completed(HttpResponse httpResponse) {
+                logger.info("completed proxy: " + proxy + " for url " + request.getURI().toString());
+
                 if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                     final String message = "status code is " + httpResponse.getStatusLine
                             ().getStatusCode();
@@ -85,7 +120,9 @@ public class ProxyChecker {
                     promise.completeExceptionally(new RuntimeException(message));
                 } else {
                     try {
-                        promise.complete(IOUtils.toString(httpResponse.getEntity().getContent(), "utf-8"));
+                        final String body = IOUtils.toString(httpResponse.getEntity().getContent(), "utf-8");
+                        logger.info("get " + body + " from " + request.getURI() + " through " + proxy);
+                        promise.complete(body);
                     } catch (IOException e) {
                         logger.error("unable to parse check response of " + httpResponse.getEntity(), e);
 
@@ -96,12 +133,16 @@ public class ProxyChecker {
 
             @Override
             public void failed(Exception e) {
-                logger.error("failed to visit " + targetUrl + " through " + proxy + " caused by " + e.getMessage(), e);
+                logger.error("failed to visit " + request.getURI().toString() + " through " + proxy + " caused by " + e
+                                .getMessage(),
+                        e);
                 promise.completeExceptionally(e);
             }
 
             @Override
             public void cancelled() {
+                logger.info("cancel proxy: " + proxy + " for url " + request.getURI().toString());
+
                 promise.cancel(false);
             }
         });
@@ -110,16 +151,20 @@ public class ProxyChecker {
     }
 
     private <T> Flowable<T> toFlowable(CompletableFuture<T> future) {
-        return Flowable.<T>defer(() -> emitter ->
-                future.whenComplete((result, error) -> {
-                    if (error != null) {
-                        emitter.onError(error);
-                    } else {
-                        logger.info("check result: " + result);
+        final BehaviorProcessor<T> processor = BehaviorProcessor.create();
 
-                        emitter.onNext(result);
-                        emitter.onComplete();
-                    }
-                })).onExceptionResumeNext(Flowable.empty());
+        future.whenComplete((result, error) -> {
+            if (error != null) {
+                processor.onError(error);
+            } else {
+                processor.onNext(result);
+                processor.onComplete();
+            }
+        });
+
+
+        return processor;
+
+
     }
 }

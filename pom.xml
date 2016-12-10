@@ -26,7 +26,6 @@
 
         <module>xici-crawler</module>
         <module>crawler4j-utils</module>
-        <module>proxy-checker-server</module>
         <module>proxy-checker-client</module>
         <!--<module>client</module>-->
         <module>cn-proxy-crawler</module>

@@ -30,6 +30,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -50,11 +51,6 @@ public class ProxyCheckerMain {
             options.addOption("a", "action", true,
                     "[crawl|check|all] -> only crawl proxies? only check already crawled proxies? or do both?");
 
-            options.addOption("s", "server", true,
-                    "you checker api url, something like http://serverip:8080/proxy-check. " +
-                            "required when action = check|all");
-
-
             CommandLineParser parser = new BasicParser();
             CommandLine cmd = parser.parse(options, args);
             HelpFormatter formatter = new HelpFormatter();
@@ -63,12 +59,11 @@ public class ProxyCheckerMain {
             if (cmd.hasOption("action")) {
                 final String action = cmd.getOptionValue("action");
 
+                String ip = AddressUtils.getMyPublicIp();
+
                 final ConfigurableApplicationContext context = SpringApplication.run(ProxyCheckerMain.class);
 
                 final ProxyChecker proxyChecker = context.getBean(ProxyChecker.class);
-
-                String ip = AddressUtils.getMyPublicIp();
-                String proxyCheckUrl = cmd.getOptionValue("server");
 
                 File dataDirectory = new File("data");
                 if (!dataDirectory.exists()) {
@@ -94,25 +89,25 @@ public class ProxyCheckerMain {
                         // load lastest crawl
                         final Set<Proxy> latestCrawl = loadLatestCrawl(historyDirectory);
                         // merge history
-                        checkAndSave(dataDirectory, mergeHistory(latestCrawl, dataDirectory), ip, proxyCheckUrl,
+                        checkAndSave(dataDirectory, mergeHistory(latestCrawl, dataDirectory), ip,
                                 proxyChecker);
                         break;
                     case "all":
                         Set<Proxy> crawledProxies = new HashSet<>(crawl());
                         // save data
                         saveLatestCrawl(crawledProxies, historyDirectory, backupDirectory);
-                        checkAndSave(dataDirectory, mergeHistory(crawledProxies, dataDirectory), ip, proxyCheckUrl,
+                        checkAndSave(dataDirectory, mergeHistory(crawledProxies, dataDirectory), ip,
                                 proxyChecker);
 
                         break;
                     default:
-                        formatter.printHelp("java -jar all-in-one.jar", options);
+                        formatter.printHelp("java -jar proxy-checker-client.jar", options);
                 }
 
                 context.close();
 
             } else {
-                formatter.printHelp("java -jar all-in-one.jar", options);
+                formatter.printHelp("java -jar proxy-checker-client.jar", options);
                 return;
             }
         }
@@ -152,7 +147,7 @@ public class ProxyCheckerMain {
     }
 
 
-    private static void checkAndSave(File dataDirectory, Set<Proxy> checking, String ip, String proxyCheckUrl,
+    private static void checkAndSave(File dataDirectory, Set<Proxy> checking, String ip,
                                      ProxyChecker proxyChecker) throws IOException {
 
         logger.info(checking.size() + " proxies need to be checked :" + checking);
@@ -168,29 +163,29 @@ public class ProxyCheckerMain {
              final PrintWriter validJsonWriter = new PrintWriter(new FileWriter(validProgressingFile));
              final PrintWriter highAnonymitySquidWriter = new PrintWriter(new FileWriter(highAnonymityFile))
         ) {
+
+            int total = checking.size();
+            AtomicInteger processed = new AtomicInteger(0);
             Flowable.fromIterable(checking)
                     .flatMap(p -> {
-                        final Flowable<ProxyCheckResponse> proxyCheckResponseFlowable =
-                                proxyChecker.getProxyResponse(ip, proxyCheckUrl, p)
-                                        .map(s -> objectMapper.readValue(s, ProxyCheckResponse.class));
+                        final Flowable<ProxyCheckResponse> proxyCheckResponseFlow = proxyChecker.getProxyResponse(ip,
+                                p);
 
-                        final Flowable<String> ip138Flowable = proxyChecker.getProxyResponse(ip
-                                , "http://1212.ip138.com/ic.asp", p);
+                        final Flowable<String> ip138Flow = proxyChecker.generalGet("http://1212.ip138.com/ic.asp", p);
 
-                        final Flowable<String> baiduFlowable = proxyChecker.generalGet(
-                                "http://www.baidu.com", p);
-
-                        return Flowable.zip(proxyCheckResponseFlowable, baiduFlowable, ip138Flowable
-                                , (proxyCheckResponse, s, s2) -> proxyCheckResponse)
-                                .onExceptionResumeNext(Flowable.just(new ProxyCheckResponse("", "", "", p, false)));
-
+                        return Flowable.zip(proxyCheckResponseFlow, ip138Flow,
+                                (response, s) -> response)
+                                .onErrorResumeNext(e -> {
+                                    return Flowable.just(new ProxyCheckResponse("", "", p, false));
+                                });
 
                     }, 1000)
                     .doOnNext(p -> writeInJsonFormat(checkJsonWriter, p))
                     .filter(p -> p.isValid())
                     .doOnNext(p -> writeInJsonFormat(validJsonWriter, p))
                     .filter(r -> "http".equalsIgnoreCase(r.getProxy().getSchema()))
-                    .doOnNext(p -> writeInSquidFormat(highAnonymitySquidWriter, p)).blockingSubscribe();
+                    .doOnNext(p -> writeInSquidFormat(highAnonymitySquidWriter, p))
+                    .blockingSubscribe();
         }
 
         // remove .progress postfix

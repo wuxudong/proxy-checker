@@ -18,12 +18,12 @@ It will
  
 * run crawler & checker client
  
-    * only run crawler(which doesn't need checker server)     
+    * only run crawler   
     
     `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a crawl`
 
 
-    * only run checker(which need checker server) 
+    * only run checker
     
     `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a check`
     

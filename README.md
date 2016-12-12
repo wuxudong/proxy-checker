@@ -14,7 +14,7 @@ It will
 * Generally, you will get around ~500 avaiable proxies, which contain ~200 high anonymity proxies.
 
 ## usage
-`mvn clean -Dmaven.test.skip packge`
+`mvn clean -Dmaven.test.skip package`
  
 * run crawler & checker client
  

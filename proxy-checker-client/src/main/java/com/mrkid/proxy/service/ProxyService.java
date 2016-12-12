@@ -9,7 +9,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -72,7 +71,7 @@ public class ProxyService {
     @Transactional
     public List<Proxy> getCheckableProxies(int page, int size) {
         int failTimeLimit = 3;
-        return proxyRepository.findByValidIsTrueOrRecentFailTimesLessThan(failTimeLimit, new PageRequest(page, size));
+        return proxyRepository.findByValidIsTrueOrRecentFailTimesLessThanOrderByHost(failTimeLimit, new PageRequest(page, size));
     }
 
 

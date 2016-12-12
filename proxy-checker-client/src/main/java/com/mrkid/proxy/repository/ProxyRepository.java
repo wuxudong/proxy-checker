@@ -16,5 +16,5 @@ public interface ProxyRepository extends JpaRepository<Proxy, String> {
 
     List<Proxy> findByValidIsTrue();
 
-    List<Proxy> findByValidIsTrueOrRecentFailTimesLessThan(int failTimeLimit, Pageable page);
+    List<Proxy> findByValidIsTrueOrRecentFailTimesLessThanOrderByHost(int failTimeLimit, Pageable page);
 }

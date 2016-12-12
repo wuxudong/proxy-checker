@@ -62,6 +62,7 @@ public class ProxyCheckerApp {
 
     private void check() {
         proxyGenerator()
+                .doOnNext(p -> System.out.println("check " + p))
                 .flatMap(p -> proxyChecker.check(p), 5000)
                 .doOnNext(p -> proxyService.saveProxyCheckResponse(p))
                 .doOnNext(p -> proxyCheckResponseWriters.forEach(writer -> {

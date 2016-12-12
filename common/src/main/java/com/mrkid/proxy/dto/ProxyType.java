@@ -27,13 +27,13 @@ public enum ProxyType {
 
 
     @JsonValue
-    public String getKey() {
-        return String.valueOf(key);
+    public int getKey() {
+        return key;
     }
 
     @JsonCreator
-    public static ProxyType create(String i) {
-        return Arrays.stream(ProxyType.values()).filter(t -> t.key == Integer.valueOf(i)).findFirst().orElseGet(() ->
+    public static ProxyType create(int i) {
+        return Arrays.stream(ProxyType.values()).filter(t -> t.key == i).findFirst().orElseGet(() ->
                 UNKNOWN);
     }
 }

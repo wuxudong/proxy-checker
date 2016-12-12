@@ -2,8 +2,8 @@ package com.mrkid.proxy.checker;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mrkid.proxy.dto.Proxy;
 import com.mrkid.proxy.dto.ProxyCheckResponse;
+import com.mrkid.proxy.dto.ProxyDTO;
 import com.mrkid.proxy.dto.ProxyType;
 import io.reactivex.Flowable;
 import io.reactivex.processors.BehaviorProcessor;
@@ -45,10 +45,23 @@ public class ProxyChecker {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyChecker.class);
 
-    public Flowable<ProxyCheckResponse> getProxyResponse(String originIp, Proxy proxy) {
-        final Flowable<String> remoteIpFlow = toFlowable(asyncCheck(proxy, new HttpGet("http://httpbin.org/ip")));
+    public Flowable<ProxyCheckResponse> check(ProxyDTO proxyDTO) {
+        final Flowable<ProxyCheckResponse> proxyCheckResponseFlow = getProxyResponse(proxyDTO);
 
-        final Flowable<String> headersFlow = toFlowable(asyncCheck(proxy, new HttpGet("http://httpbin.org/headers")));
+        final Flowable<String> ip138Flow = generalGet("http://1212.ip138.com/ic.asp", proxyDTO);
+
+        return Flowable.zip(proxyCheckResponseFlow, ip138Flow,
+                (response, s) -> response)
+                .onErrorResumeNext(e -> {
+                    return Flowable.just(new ProxyCheckResponse("", "", proxyDTO, false));
+                });
+    }
+
+
+    private Flowable<ProxyCheckResponse> getProxyResponse(ProxyDTO proxy) {
+        final Flowable<String> remoteIpFlow = toFlowable(execute(proxy, new HttpGet("http://httpbin.org/ip")));
+
+        final Flowable<String> headersFlow = toFlowable(execute(proxy, new HttpGet("http://httpbin.org/headers")));
 
         return remoteIpFlow.zipWith(headersFlow, (remoteIpResponse, headersResponse) -> {
             String remoteIp = objectMapper.readTree(remoteIpResponse).get("origin").asText();
@@ -70,7 +83,6 @@ public class ProxyChecker {
 
             ProxyCheckResponse proxyCheckResponse = new ProxyCheckResponse();
             proxyCheckResponse.setProxy(proxy);
-            proxyCheckResponse.setOriginIp(originIp);
             proxyCheckResponse.setRemoteIp(remoteIp);
             proxyCheckResponse.setValid(true);
             if (highAnonymity) {
@@ -84,12 +96,12 @@ public class ProxyChecker {
 
     }
 
-    public Flowable<String> generalGet(String targetUrl, Proxy proxy) {
+    private Flowable<String> generalGet(String targetUrl, ProxyDTO proxy) {
         final HttpGet request = new HttpGet(targetUrl);
-        return toFlowable(asyncCheck(proxy, request));
+        return toFlowable(execute(proxy, request));
     }
 
-    private CompletableFuture<String> asyncCheck(Proxy proxy, HttpRequestBase request) {
+    private CompletableFuture<String> execute(ProxyDTO proxy, HttpRequestBase request) {
 
         CompletableFuture<String> promise = new CompletableFuture<>();
 

@@ -1,7 +1,9 @@
-package com.mrkid.proxy.kxdaili;
+package com.mrkid.proxy.ip3366;
 
-import com.mrkid.proxy.dto.Proxy;
+import com.mrkid.proxy.Crawl4jProxyFetcher;
+import com.mrkid.proxy.dto.ProxyDTO;
 import com.mrkid.proxy.dto.Source;
+import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
@@ -14,9 +16,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 
 /**
@@ -24,20 +27,38 @@ import java.util.stream.Collectors;
  * Date: 03/11/2016
  * Time: 12:47 PM
  */
-public class KxDailiCrawler extends WebCrawler {
+public class Ip3366ProxyFetcher extends Crawl4jProxyFetcher {
 
-    public static final String STORE_ROOT = "./crawl/kxdaili/root";
-    public static final String SEED = "http://www.kxdaili.com/dailiip.html";
+    public static final String STORE_ROOT = "./crawl/ip3366/root";
+    public static final String SEED = "http://www.ip3366.net/free/";
 
-    private BlockingQueue<Proxy> outputQueue;
-
-    public KxDailiCrawler(BlockingQueue<Proxy> outputQueue) {
-        this.outputQueue = outputQueue;
+    @Override
+    protected String getStoreRoot() {
+        return STORE_ROOT;
     }
 
     @Override
+    protected List<String> getSeeds() {
+        return Arrays.asList(SEED);
+    }
+
+    @Override
+    protected int getPolitenessDelay() {
+        return 0;
+    }
+
+    @Override
+    protected CrawlController.WebCrawlerFactory<WebCrawler> getWebCrawlerFactory() {
+        return () -> new Ip3366Crawler();
+    }
+}
+
+ class Ip3366Crawler extends WebCrawler {
+     private List<ProxyDTO> result = new ArrayList<>();
+
+     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
-        return url.getURL().startsWith("http://www.kxdaili.com/dailiip");
+        return url.getURL().startsWith("http://www.ip3366.net/free/");
     }
 
     /**
@@ -54,17 +75,17 @@ public class KxDailiCrawler extends WebCrawler {
             String html = htmlParseData.getHtml();
 
             final Document doc = Jsoup.parse(html);
-            final Elements tables = doc.select("div table");
+            final Elements tables = doc.select("#list > table");
 
-            final List<Proxy> proxies = tables.stream().map(table -> extractProxies(table)).flatMap(l -> l.stream())
+            final List<ProxyDTO> proxies = tables.stream().map(table -> extractProxies(table)).flatMap(l -> l.stream())
                     .collect(Collectors.toList());
 
-            proxies.forEach(p->outputQueue.offer(p));
+            proxies.forEach(p->result.add(p));
         }
     }
 
-    private List<Proxy> extractProxies(Element table) {
-        final Elements header = table.select("thead th");
+    private List<ProxyDTO> extractProxies(Element table) {
+        final Elements header = table.select("thead tr th");
         final Elements rows = table.select("tbody tr");
 
         return rows.stream().map(row -> {
@@ -81,15 +102,24 @@ public class KxDailiCrawler extends WebCrawler {
             for (int i = 0; i < size; i++) {
                 String headerName = header.get(i).text();
                 switch (headerName) {
-                    case "IP地址":
+                    case "IP":
                         host = cells.get(i).text();
                         break;
-                    case "端口":
+
+                    case "PORT":
                         port = Integer.valueOf(cells.get(i).text());
                         break;
-                    case "地理位置":
+                    case "位置":
                         location = cells.get(i).text();
                         break;
+                    case "最后验证时间":
+                        try {
+                            lastCheckSuccess = DateUtils.parseDate(cells.get(i).text(), "yyyy/MM/dd HH:MM:ss");
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        break;
+
                     default:
                 }
 
@@ -99,13 +129,19 @@ public class KxDailiCrawler extends WebCrawler {
                 return null;
             }
 
-            Proxy proxy = new Proxy("http", host, port);
+            ProxyDTO proxy = new ProxyDTO("http", host, port);
             proxy.setLocation(location);
+            proxy.setLastCheckSuccess(lastCheckSuccess);
 
-            proxy.setSource(Source.KXDAILI.name());
+            proxy.setSource(Source.IP3366.name());
 
 
             return proxy;
         }).filter(p -> p != null).collect(Collectors.toList());
     }
-}
+
+     @Override
+     public List<ProxyDTO> getMyLocalData() {
+         return result;
+     }
+ }

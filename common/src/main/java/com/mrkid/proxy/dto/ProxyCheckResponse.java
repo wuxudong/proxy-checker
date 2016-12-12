@@ -11,7 +11,7 @@ import lombok.Data;
 public class ProxyCheckResponse {
     private String originIp;
     private String remoteIp;
-    private Proxy proxy;
+    private ProxyDTO proxy;
 
     private boolean valid;
 
@@ -21,7 +21,7 @@ public class ProxyCheckResponse {
     }
 
 
-    public ProxyCheckResponse(String originIp, String remoteIp, Proxy proxy, boolean valid) {
+    public ProxyCheckResponse(String originIp, String remoteIp, ProxyDTO proxy, boolean valid) {
         this.originIp = originIp;
         this.remoteIp = remoteIp;
         this.proxy = proxy;

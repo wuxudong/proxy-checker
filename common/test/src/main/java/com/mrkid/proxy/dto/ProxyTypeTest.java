@@ -20,7 +20,7 @@ public class ProxyTypeTest {
     public void test1() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
 
-        Proxy p = new Proxy("http", "127.0.0.1", 3128);
+        ProxyDTO p = new ProxyDTO("http", "127.0.0.1", 3128);
 
         ProxyCheckResponse r1 = new ProxyCheckResponse();
         r1.setProxy(p);
@@ -32,6 +32,8 @@ public class ProxyTypeTest {
 
 
         final ProxyCheckResponse r2 = objectMapper.readValue(out, ProxyCheckResponse.class);
+
+        System.out.println(r2);
 
         Assert.assertEquals(r1, r2);
 

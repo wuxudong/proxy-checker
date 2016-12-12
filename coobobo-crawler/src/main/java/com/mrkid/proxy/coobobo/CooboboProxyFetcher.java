@@ -1,7 +1,9 @@
-package com.mrkid.proxy.ip3366;
+package com.mrkid.proxy.coobobo;
 
-import com.mrkid.proxy.dto.Proxy;
+import com.mrkid.proxy.Crawl4jProxyFetcher;
+import com.mrkid.proxy.dto.ProxyDTO;
 import com.mrkid.proxy.dto.Source;
+import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
@@ -14,9 +16,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -24,20 +28,73 @@ import java.util.stream.Collectors;
  * Date: 03/11/2016
  * Time: 12:47 PM
  */
-public class Ip3366Crawler extends WebCrawler {
+public class CooboboProxyFetcher extends Crawl4jProxyFetcher {
 
-    public static final String STORE_ROOT = "./crawl/ip3366/root";
-    public static final String SEED = "http://www.ip3366.net/free/";
+    public static final String STORE_ROOT = "./crawl/coobobo/root";
+    public static final String SEED = "http://www.coobobo.com/free-http-proxy/";
 
-    private BlockingQueue<Proxy> outputQueue;
+    private boolean crawlHistory = false;
 
-    public Ip3366Crawler(BlockingQueue<Proxy> outputQueue) {
-        this.outputQueue = outputQueue;
+    @Override
+    protected String getStoreRoot() {
+        return STORE_ROOT;
+    }
+
+    @Override
+    protected List<String> getSeeds() {
+        return Arrays.asList(SEED);
+    }
+
+    @Override
+    protected int getPolitenessDelay() {
+        return 0;
+    }
+
+    @Override
+    protected CrawlController.WebCrawlerFactory<WebCrawler> getWebCrawlerFactory() {
+        return () -> new CooboboCrawler(crawlHistory);
+    }
+
+    public CooboboProxyFetcher(boolean crawlHistory) {
+        this.crawlHistory = crawlHistory;
+    }
+}
+
+class CooboboCrawler extends WebCrawler {
+
+    private List<ProxyDTO> result = new ArrayList<>();
+
+    private boolean crawlHistory = false;
+
+    private static final String HISTROY_LIST_URL = "http://www.coobobo.com/free-http-proxy-everyday";
+
+    private static final Pattern HISTROY_URL_PATTERN = Pattern.compile(
+            "http://www.coobobo.com/free-http-proxy/(\\d){4}-(\\d){2}-(\\d){2}");
+
+    private static final Pattern LATEST_URL_PATTERN = Pattern.compile(
+            "http://www.coobobo.com/free-http-proxy/(\\d)+");
+
+
+    public CooboboCrawler(boolean crawlHistory) {
+        this.crawlHistory = crawlHistory;
     }
 
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
-        return url.getURL().startsWith("http://www.ip3366.net/free/");
+        if (url.getURL().equals(HISTROY_LIST_URL)) {
+            return true;
+        }
+
+        if (LATEST_URL_PATTERN.matcher(url.getURL()).matches()) {
+            return true;
+        }
+
+
+        if (crawlHistory) {
+            return HISTROY_URL_PATTERN.matcher(url.getURL()).matches();
+        }
+
+        return false;
     }
 
     /**
@@ -54,16 +111,16 @@ public class Ip3366Crawler extends WebCrawler {
             String html = htmlParseData.getHtml();
 
             final Document doc = Jsoup.parse(html);
-            final Elements tables = doc.select("#list > table");
+            final Elements tables = doc.select("table");
 
-            final List<Proxy> proxies = tables.stream().map(table -> extractProxies(table)).flatMap(l -> l.stream())
+            final List<ProxyDTO> proxies = tables.stream().map(table -> extractProxies(table)).flatMap(l -> l.stream())
                     .collect(Collectors.toList());
 
-            proxies.forEach(p->outputQueue.offer(p));
+            proxies.forEach(p -> result.add(p));
         }
     }
 
-    private List<Proxy> extractProxies(Element table) {
+    private List<ProxyDTO> extractProxies(Element table) {
         final Elements header = table.select("thead tr th");
         final Elements rows = table.select("tbody tr");
 
@@ -84,8 +141,7 @@ public class Ip3366Crawler extends WebCrawler {
                     case "IP":
                         host = cells.get(i).text();
                         break;
-
-                    case "PORT":
+                    case "端口":
                         port = Integer.valueOf(cells.get(i).text());
                         break;
                     case "位置":
@@ -93,12 +149,11 @@ public class Ip3366Crawler extends WebCrawler {
                         break;
                     case "最后验证时间":
                         try {
-                            lastCheckSuccess = DateUtils.parseDate(cells.get(i).text(), "yyyy/MM/dd HH:MM:ss");
+                            lastCheckSuccess = DateUtils.parseDate(cells.get(i).text(), "yyyy-MM-dd HH:MM:ss");
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
                         break;
-
                     default:
                 }
 
@@ -108,14 +163,18 @@ public class Ip3366Crawler extends WebCrawler {
                 return null;
             }
 
-            Proxy proxy = new Proxy("http", host, port);
+            ProxyDTO proxy = new ProxyDTO("http", host, port);
             proxy.setLocation(location);
             proxy.setLastCheckSuccess(lastCheckSuccess);
 
-            proxy.setSource(Source.IP3366.name());
-
+            proxy.setSource(Source.COOBOBO.name());
 
             return proxy;
         }).filter(p -> p != null).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProxyDTO> getMyLocalData() {
+        return result;
     }
 }

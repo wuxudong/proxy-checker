@@ -13,7 +13,7 @@ import java.util.Date;
  */
 @Data
 @EqualsAndHashCode(of = {"schema", "host"})
-public class Proxy {
+public class ProxyDTO {
     private final String schema;
     private final String host;
     private final int port;

@@ -5,3 +5,5 @@ test_data
 *.iml
 crawl
 data
+db
+app.log*

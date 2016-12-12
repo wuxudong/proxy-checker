@@ -30,3 +30,5 @@ It will
     * run them both
     
     `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a all`
+
+* Data is stored at ./db/proxy.mv.db by default, and valid proxies are exported to ./data/ in plain/squid/... format.

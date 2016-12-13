@@ -138,10 +138,11 @@ public class CrawlerConfiguration {
             public void write(ProxyCheckResponse response) {
                 writer.println(
                         String.format(
-                                "cache_peer %s parent %d 0 round-robin no-query connect-fail-limit=1 #%s",
+                                "cache_peer %s parent %d 0 round-robin no-query connect-fail-limit=1 #%s %s",
                                 response.getProxy().getHost(),
                                 response.getProxy().getPort(),
-                                response.getProxyType().name()));
+                                response.getProxyType().name(),
+                                response.getProxy().getSource()));
 
             }
 

@@ -1,7 +1,6 @@
 package com.mrkid.proxy.repository;
 
 import com.mrkid.proxy.model.Proxy;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 

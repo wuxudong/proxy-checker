@@ -5,6 +5,7 @@ import com.mrkid.proxy.dto.ProxyListDTO;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.helper.W3CDom;
 import org.jsoup.nodes.Document;
@@ -65,6 +66,17 @@ public class ProxyWebCrawler extends WebCrawler {
                 transformer.transform(new DOMSource(new W3CDom().fromJsoup(document)), new StreamResult(write));
 
                 String xml = write.toString();
+
+                // XML 1.1
+                // [#x1-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+                String xml11pattern = "[^"
+                        + "\u0001-\uD7FF"
+                        + "\uE000-\uFFFD"
+                        + "\ud800\udc00-\udbff\udfff"
+                        + "]+";
+
+                // remove invalid character in xml
+                xml = xml.replaceAll(xml11pattern, "");
 
                 JAXBContext jc = JAXBContext.newInstance(ProxyListDTO.class);
 

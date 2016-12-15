@@ -6,7 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,33 +20,43 @@ import java.util.stream.Collectors;
  */
 public class P881FreeCrawler implements ProxyFetcher {
 
+    private Logger logger = LoggerFactory.getLogger(P881FreeCrawler.class);
+
     @Override
     public List<ProxyDTO> crawl() throws Exception {
         Document doc = Jsoup.connect("http://881free.com/").timeout(30000).get();
 
         final Element body = doc.body();
 
-        final List<ProxyDTO> proxies = Arrays.stream(body.text().split("\\s")).map(s -> {
+        final List<ProxyDTO> proxies = Arrays.stream(body.text().split("\\s"))
+                .filter(s -> StringUtils.isNotBlank(s))
+                .map(s -> {
 
-            List<String> schemas = Arrays.asList("http://", "https://");
+                    List<String> schemas = Arrays.asList("http://", "https://");
 
 
-            for (String schema : schemas) {
-                if (s.indexOf(schema) >= 0) {
-                    s = s.substring(s.indexOf(schema) + schema.length());
-                }
-            }
+                    for (String schema : schemas) {
+                        if (s.indexOf(schema) >= 0) {
+                            s = s.substring(s.indexOf(schema) + schema.length());
+                        }
+                    }
 
-            final String[] token = s.split(":");
-            ProxyDTO proxy = new ProxyDTO();
-            proxy.setSchema("http");
-            proxy.setHost(token[0]);
-            proxy.setPort(Integer.valueOf(token[1]));
-            proxy.setSource("P881FREE");
+                    final String[] token = s.split(":");
 
-            return proxy;
+                    if (token.length != 2) {
+                        logger.error("invalid address:" + s);
+                        return null;
+                    }
 
-        }).collect(Collectors.toList());
+                    ProxyDTO proxy = new ProxyDTO();
+                    proxy.setSchema("http");
+                    proxy.setHost(token[0]);
+                    proxy.setPort(Integer.valueOf(token[1]));
+                    proxy.setSource("P881FREE");
+
+                    return proxy;
+
+                }).filter(p -> p != null).collect(Collectors.toList());
 
         return proxies;
     }

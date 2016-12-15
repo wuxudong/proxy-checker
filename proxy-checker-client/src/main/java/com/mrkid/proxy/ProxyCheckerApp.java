@@ -6,6 +6,7 @@ import com.mrkid.proxy.model.Proxy;
 import com.mrkid.proxy.service.ProxyService;
 import io.reactivex.Flowable;
 import org.apache.commons.cli.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +103,9 @@ public class ProxyCheckerApp {
         });
 
         logger.info(proxies.size() + " proxies crawled");
-        new HashSet<>(proxies).forEach(p -> proxyService.saveProxy(p));
+        new HashSet<>(proxies).stream()
+                .filter(p -> StringUtils.isNotBlank(p.getHost()))
+                .forEach(p -> proxyService.saveProxy(p));
     }
 
     public static void main(String[] args) throws Exception {

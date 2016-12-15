@@ -16,9 +16,6 @@
                     <port>
                         <xsl:value-of select="td[2]"/>
                     </port>
-                    <location>
-                        <xsl:value-of select="td[6]"/>
-                    </location>
                 </proxy>
             </xsl:for-each>
         </proxies>

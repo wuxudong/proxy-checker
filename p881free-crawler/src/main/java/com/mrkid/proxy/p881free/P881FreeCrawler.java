@@ -2,13 +2,13 @@ package com.mrkid.proxy.p881free;
 
 import com.mrkid.proxy.ProxyFetcher;
 import com.mrkid.proxy.dto.ProxyDTO;
-import com.mrkid.proxy.dto.Source;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,58 +23,30 @@ public class P881FreeCrawler implements ProxyFetcher {
     public List<ProxyDTO> crawl() throws Exception {
         Document doc = Jsoup.connect("http://881free.com/").timeout(30000).get();
 
+        final Element body = doc.body();
 
-        final Elements tables = doc.select("article table");
+        final List<ProxyDTO> proxies = Arrays.stream(body.text().split("\\s")).map(s -> {
 
-        final List<ProxyDTO> proxies = tables.stream().map(table -> extractProxies(table)).flatMap(l -> l.stream())
-                .collect(Collectors.toList());
+            List<String> schemas = Arrays.asList("http://", "https://");
 
-        return proxies;
 
-    }
-
-    private List<ProxyDTO> extractProxies(Element table) {
-        final Elements header = table.select("thead tr th");
-        final Elements rows = table.select("tbody tr");
-
-        return rows.stream().map(row -> {
-            final int size = header.size();
-
-            String host = "";
-            int port = 0;
-
-            String location = null;
-
-            Elements cells = row.select("td");
-
-            for (int i = 0; i < size; i++) {
-                String headerText = header.get(i).text();
-                switch (headerText) {
-                    case "IP地址":
-                        host = cells.get(i).text();
-                        break;
-                    case "端口":
-                        port = Integer.valueOf(cells.get(i).text());
-                        break;
-                    case "国家":
-                        location = cells.get(i).text();
-                        break;
-                    default:
+            for (String schema : schemas) {
+                if (s.indexOf(schema) >= 0) {
+                    s = s.substring(s.indexOf(schema) + schema.length());
                 }
-
             }
 
-            if (StringUtils.isBlank(host) || port == 0) {
-                return null;
-            }
-
-            ProxyDTO proxy = new ProxyDTO("http", host, port);
-            proxy.setLocation(location);
-            proxy.setSource(Source.P881FREE.name());
+            final String[] token = s.split(":");
+            ProxyDTO proxy = new ProxyDTO();
+            proxy.setSchema("http");
+            proxy.setHost(token[0]);
+            proxy.setPort(Integer.valueOf(token[1]));
+            proxy.setSource("P881FREE");
 
             return proxy;
-        }).filter(p -> p != null).collect(Collectors.toList());
+
+        }).collect(Collectors.toList());
+
+        return proxies;
     }
-
-
 }

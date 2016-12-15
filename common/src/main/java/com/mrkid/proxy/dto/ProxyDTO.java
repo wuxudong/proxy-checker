@@ -2,7 +2,7 @@ package com.mrkid.proxy.dto;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 
@@ -14,13 +14,17 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode(of = {"schema", "host"})
 public class ProxyDTO {
-    private final String schema;
-    private final String host;
-    private final int port;
+    private String schema = "http";
+    private String host;
+    private int port;
 
     private String location;
     private Date lastCheckSuccess;
     private Date lastCheckFail;
 
     private String source = "";
+
+    public void setLocation(String location) {
+        this.location = StringUtils.isNotBlank(location) ? location.trim() : "";
+    }
 }

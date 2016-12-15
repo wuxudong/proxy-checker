@@ -2,7 +2,6 @@ package com.mrkid.proxy.haoip;
 
 import com.mrkid.proxy.ProxyFetcher;
 import com.mrkid.proxy.dto.ProxyDTO;
-import com.mrkid.proxy.dto.Source;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -34,8 +33,11 @@ public class HaoIPCrawler implements ProxyFetcher {
     private List<ProxyDTO> extractProxies(Element table) {
         return Arrays.stream(table.text().split("\\s")).map(s -> {
             final String[] token = s.split(":");
-            ProxyDTO proxy = new ProxyDTO("http", token[0], Integer.valueOf(token[1]));
-            proxy.setSource(Source.HAOIP.name());
+            ProxyDTO proxy = new ProxyDTO();
+            proxy.setSchema("http");
+            proxy.setHost(token[0]);
+            proxy.setPort(Integer.valueOf(token[1]));
+            proxy.setSource("HAOIP");
 
             return proxy;
 

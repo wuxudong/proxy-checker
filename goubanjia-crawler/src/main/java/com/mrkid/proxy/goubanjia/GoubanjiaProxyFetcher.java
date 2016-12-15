@@ -2,7 +2,6 @@ package com.mrkid.proxy.goubanjia;
 
 import com.mrkid.proxy.Crawl4jProxyFetcher;
 import com.mrkid.proxy.dto.ProxyDTO;
-import com.mrkid.proxy.dto.Source;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
@@ -123,10 +122,13 @@ class GoubanjiaCrawler extends WebCrawler {
                 return null;
             }
 
-            ProxyDTO proxy = new ProxyDTO("http", host, port);
+            ProxyDTO proxy = new ProxyDTO();
+            proxy.setHost(host);
+            proxy.setPort(port);
+            proxy.setSchema("http");
             proxy.setLocation(location);
 
-            proxy.setSource(Source.GOUBANJIA.name());
+            proxy.setSource("GOUBANJIA");
 
 
             return proxy;

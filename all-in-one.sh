@@ -2,7 +2,9 @@
 
 #this script should be run as root
 
-java -jar proxy-checker-client/target/proxy-checker-client-1.0-SNAPSHOT.jar -a all
+java -jar crawler/target/crawler-1.0-SNAPSHOT.jar
+
+java -jar checker/target/checker-1.0-SNAPSHOT.jar
 
 #remove all cache_peer
 sed -i.bak '/cache_peer/d' /etc/squid3/squid.conf

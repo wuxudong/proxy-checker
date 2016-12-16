@@ -6,4 +6,4 @@ test_data
 crawl
 data
 db
-app.log*
+*.log*

@@ -131,7 +131,7 @@ public class ProxyCheckerConfiguration {
 
     @Bean
     public int maxConcurrency() {
-        return 5000;
+        return 1000;
     }
 
 

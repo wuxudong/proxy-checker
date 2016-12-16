@@ -80,14 +80,14 @@ public class ProxyService {
 
     @Transactional
     public List<Proxy> getCheckableProxies(int page, int size) {
-        return proxyRepository.findByValidIsTrueOrRecentFailTimesLessThanOrderByHost(failTimeLimit, new PageRequest
+        return proxyRepository.findByValidIsTrueOrRecentFailTimesLessThanOrderByKeyHost(failTimeLimit, new PageRequest
                 (page, size));
     }
 
 
     @Transactional
     public List<Proxy> getInactiveProxies(int page, int size) {
-        return proxyRepository.findByValidIsFalseAndRecentFailTimesGreaterThanEqualOrderByHost(failTimeLimit, new
+        return proxyRepository.findByValidIsFalseAndRecentFailTimesGreaterThanEqualOrderByKeyHost(failTimeLimit, new
                 PageRequest(page, size));
     }
 

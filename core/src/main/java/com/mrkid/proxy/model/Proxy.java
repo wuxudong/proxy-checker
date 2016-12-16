@@ -4,10 +4,7 @@ import com.mrkid.proxy.dto.ProxyType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
 
 /**
@@ -19,11 +16,9 @@ import java.util.Date;
 @Entity
 @Table(indexes = {@Index(name = "valid_recentFailTimes", columnList = "valid,recentFailTimes")})
 public class Proxy {
-    @Id
-    private String host;
 
-    private String schema;
-    private int port;
+    @EmbeddedId
+    private ProxyKey key;
 
     private boolean valid;
 

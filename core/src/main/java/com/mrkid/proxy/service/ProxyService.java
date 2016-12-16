@@ -4,6 +4,7 @@ import com.mrkid.proxy.dto.ProxyCheckResponse;
 import com.mrkid.proxy.dto.ProxyDTO;
 import com.mrkid.proxy.model.LowQualityProxy;
 import com.mrkid.proxy.model.Proxy;
+import com.mrkid.proxy.model.ProxyKey;
 import com.mrkid.proxy.repository.LowQualityProxyRepository;
 import com.mrkid.proxy.repository.ProxyRepository;
 import org.springframework.beans.BeanUtils;
@@ -34,19 +35,15 @@ public class ProxyService {
 
     @Transactional
     public Proxy saveProxy(ProxyDTO proxyDTO) {
-        Proxy proxy = proxyRepository.findOne(proxyDTO.getHost());
+        ProxyKey key = new ProxyKey(proxyDTO.getSchema(), proxyDTO.getHost(), proxyDTO.getPort());
+        Proxy proxy = proxyRepository.findOne(key);
         if (proxy == null) {
             proxy = new Proxy();
-            proxy.setHost(proxyDTO.getHost());
-            proxy.setPort(proxyDTO.getPort());
-            proxy.setSchema(proxyDTO.getSchema());
+            proxy.setKey(key);
 
             proxy.setSource(proxyDTO.getSource());
             proxy.setLocation(proxyDTO.getLocation());
         } else {
-            proxy.setPort(proxyDTO.getPort());
-            proxy.setSchema(proxyDTO.getSchema());
-
             proxy.setSource(proxyDTO.getSource());
             proxy.setLocation(proxyDTO.getLocation());
         }
@@ -56,7 +53,11 @@ public class ProxyService {
 
     @Transactional
     public Proxy saveProxyCheckResponse(ProxyCheckResponse proxyCheckResponse) {
-        Proxy proxy = proxyRepository.getOne(proxyCheckResponse.getProxy().getHost());
+
+        ProxyDTO proxyDTO = proxyCheckResponse.getProxy();
+        ProxyKey key = new ProxyKey(proxyDTO.getSchema(), proxyDTO.getHost(), proxyDTO.getPort());
+
+        Proxy proxy = proxyRepository.getOne(key);
 
         proxy.setValid(proxyCheckResponse.isValid());
         proxy.setProxyType(proxyCheckResponse.getProxyType().getKey());
@@ -79,20 +80,22 @@ public class ProxyService {
 
     @Transactional
     public List<Proxy> getCheckableProxies(int page, int size) {
-        return proxyRepository.findByValidIsTrueOrRecentFailTimesLessThanOrderByHost(failTimeLimit, new PageRequest(page, size));
+        return proxyRepository.findByValidIsTrueOrRecentFailTimesLessThanOrderByHost(failTimeLimit, new PageRequest
+                (page, size));
     }
 
 
     @Transactional
     public List<Proxy> getInactiveProxies(int page, int size) {
-        return proxyRepository.findByValidIsFalseAndRecentFailTimesGreaterThanEqualOrderByHost(failTimeLimit, new PageRequest(page, size));
+        return proxyRepository.findByValidIsFalseAndRecentFailTimesGreaterThanEqualOrderByHost(failTimeLimit, new
+                PageRequest(page, size));
     }
 
     @Transactional
     public void archive(Proxy proxy) {
         proxyRepository.delete(proxy);
 
-        LowQualityProxy lowQualityProxy = lowQualityProxyRepository.findOne(proxy.getHost());
+        LowQualityProxy lowQualityProxy = lowQualityProxyRepository.findOne(proxy.getKey());
 
         if (lowQualityProxy == null) {
             lowQualityProxy = new LowQualityProxy();
@@ -101,9 +104,6 @@ public class ProxyService {
             lowQualityProxyRepository.save(lowQualityProxy);
         }
     }
-
-
-
 
 
 }

@@ -1,7 +1,8 @@
 package com.mrkid.proxy.checker;
 
 import com.mrkid.proxy.checker.utils.AddressUtils;
-import com.mrkid.proxy.dto.ProxyCheckResponse;
+import com.mrkid.proxy.checker.writer.PlainFormatWriter;
+import com.mrkid.proxy.checker.writer.SquidFormatWriter;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
@@ -10,9 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -65,57 +64,12 @@ public class ProxyCheckerConfiguration {
 
     @Bean
     public ProxyCheckResponseWriter squidFormatWriter(File dataDirectory) throws IOException {
-        return new ProxyCheckResponseWriter() {
-            final PrintWriter writer = new PrintWriter(new FileWriter(new File(dataDirectory,
-                    "proxy.squid")));
-
-            @Override
-            public boolean shouldWrite(ProxyCheckResponse response) {
-                return response.isValid() && "http".equalsIgnoreCase(response.getProxy().getSchema());
-            }
-
-            @Override
-            public void write(ProxyCheckResponse response) {
-                writer.println(
-                        String.format(
-                                "cache_peer %s parent %d 0 round-robin no-query connect-fail-limit=1 #%s %s",
-                                response.getProxy().getHost(),
-                                response.getProxy().getPort(),
-                                response.getProxyType().name(),
-                                response.getProxy().getSource()));
-
-            }
-
-            @Override
-            public void close() throws IOException {
-                writer.close();
-
-            }
-        };
+        return new SquidFormatWriter(dataDirectory);
     }
 
     @Bean
     public ProxyCheckResponseWriter plainFormatWriter(File dataDirectory) throws IOException {
-        return new ProxyCheckResponseWriter() {
-            final PrintWriter writer = new PrintWriter(new FileWriter(new File(dataDirectory,
-                    "proxy.plain")));
-
-            @Override
-            public boolean shouldWrite(ProxyCheckResponse response) {
-                return response.isValid() && "http".equalsIgnoreCase(response.getProxy().getSchema());
-            }
-
-            @Override
-            public void write(ProxyCheckResponse response) {
-                writer.println(response.getProxy().getHost() + ":" + response.getProxy().getPort());
-
-            }
-
-            @Override
-            public void close() throws IOException {
-                writer.close();
-            }
-        };
+        return new PlainFormatWriter(dataDirectory);
     }
 
     @Bean

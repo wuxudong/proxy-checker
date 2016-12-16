@@ -30,22 +30,24 @@ public class EtlApp {
     private ProxyService proxyService;
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 1) {
-            System.out.println("java EtlApp [file]");
+        if (args.length != 2) {
+            System.out.println("java EtlApp [file] [source]");
             return;
         }
 
         File file = new File(args[0]);
 
+        String source = args[1];
+
         final ConfigurableApplicationContext context = SpringApplication.run(EtlApp.class);
 
-        context.getBean(EtlApp.class).etl(file);
+        context.getBean(EtlApp.class).etl(file, source);
 
         context.close();
 
     }
 
-    private void etl(File file) throws IOException {
+    private void etl(File file, String source) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line = null;
             while ((line = reader.readLine()) != null) {
@@ -57,6 +59,7 @@ public class EtlApp {
                     ProxyDTO proxy = new ProxyDTO();
                     proxy.setHost(host);
                     proxy.setPort(port);
+                    proxy.setSource(source);
 
                     proxyService.saveProxy(proxy);
                 }

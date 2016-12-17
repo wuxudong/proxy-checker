@@ -15,6 +15,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -65,9 +66,20 @@ public class ProxyCheckerApp {
     }
 
     private void check() {
+        AtomicInteger concurrency = new AtomicInteger(0);
+
+        AtomicInteger dispatchedCount = new AtomicInteger(0);
+
+        Flowable.interval(1, 1, TimeUnit.SECONDS).subscribe(l ->
+                System.out.println("dispatchedCount " + dispatchedCount.get() + " concurrency " + concurrency.get())
+        );
+
         proxyGenerator()
                 .doOnNext(p -> System.out.println("check " + p))
+                .doOnNext(p -> concurrency.incrementAndGet())
+                .doOnNext(p -> dispatchedCount.incrementAndGet())
                 .flatMap(p -> proxyChecker.check(p), maxConcurrency)
+                .doOnNext(p -> concurrency.decrementAndGet())
                 .doOnNext(p -> proxyService.saveProxyCheckResponse(p))
                 .doOnNext(p -> proxyCheckResponseWriters.forEach(writer -> {
                     if (writer.shouldWrite(p)) writer.write(p);

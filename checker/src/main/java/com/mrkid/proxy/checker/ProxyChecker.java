@@ -46,6 +46,9 @@ public class ProxyChecker {
     private static final Logger logger = LoggerFactory.getLogger(ProxyChecker.class);
 
     public Flowable<ProxyCheckResponse> check(ProxyDTO proxyDTO) {
+
+        long start = System.currentTimeMillis();
+
         final Flowable<ProxyCheckResponse> proxyCheckResponseFlow = getProxyResponse(proxyDTO);
 
         final Flowable<String> ip138Flow = generalGet("http://1212.ip138.com/ic.asp", proxyDTO);
@@ -54,7 +57,11 @@ public class ProxyChecker {
                 (response, s) -> response)
                 .onErrorResumeNext(e -> {
                     return Flowable.just(new ProxyCheckResponse("", "", proxyDTO, false));
-                });
+                }).doFinally(
+                        () -> logger.info("checking {}://{}:{} takes {} ms",
+                                proxyDTO.getSchema(), proxyDTO.getHost(), proxyDTO.getPort(),
+                                System.currentTimeMillis() - start)
+                );
     }
 
 

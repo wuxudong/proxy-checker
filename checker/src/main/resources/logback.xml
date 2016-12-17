@@ -14,7 +14,7 @@
         </filter>
         <file>checker.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>app.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>checker.log.%d{yyyy-MM-dd}</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
 

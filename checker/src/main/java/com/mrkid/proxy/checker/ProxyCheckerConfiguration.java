@@ -94,7 +94,7 @@ public class ProxyCheckerConfiguration {
 
     @Bean
     public int overallTimeout() {
-        return 30 * 3000;
+        return 60 * 1000;
     }
 
     @Bean

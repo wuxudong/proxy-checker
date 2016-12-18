@@ -76,7 +76,6 @@ public class ProxyCheckerApp {
         );
 
         proxyGenerator()
-                .doOnNext(p -> System.out.println("check " + p))
                 .doOnNext(p -> concurrency.incrementAndGet())
                 .doOnNext(p -> dispatchedCount.incrementAndGet())
                 .flatMap(p -> proxyChecker.check(p), maxConcurrency)

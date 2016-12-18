@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * User: xudong
@@ -86,6 +88,16 @@ public class ProxyCheckerConfiguration {
     @Bean
     public int maxConcurrency() {
         return 1000;
+    }
+
+    @Bean
+    public int overallTimeout() {
+        return 30 * 3000;
+    }
+
+    @Bean
+    public ScheduledExecutorService scheduledExecutorService() {
+        return Executors.newSingleThreadScheduledExecutor();
     }
 
 

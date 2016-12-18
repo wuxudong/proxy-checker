@@ -4,6 +4,7 @@ import com.mrkid.proxy.dto.ProxyDTO;
 import com.mrkid.proxy.model.Proxy;
 import com.mrkid.proxy.service.ProxyService;
 import io.reactivex.Flowable;
+import io.reactivex.disposables.Disposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,7 @@ public class ProxyCheckerApp {
 
         AtomicInteger dispatchedCount = new AtomicInteger(0);
 
-        Flowable.interval(1, 1, TimeUnit.SECONDS).subscribe(l ->
+        Disposable audit = Flowable.interval(1, 1, TimeUnit.SECONDS).subscribe(l ->
                 System.out.println("dispatchedCount " + dispatchedCount.get() + " concurrency " + concurrency.get())
         );
 
@@ -84,6 +85,8 @@ public class ProxyCheckerApp {
                 .doOnNext(p -> proxyCheckResponseWriters.forEach(writer -> {
                     if (writer.shouldWrite(p)) writer.write(p);
                 })).blockingSubscribe();
+
+        audit.dispose();
 
     }
 

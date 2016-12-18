@@ -30,6 +30,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * User: xudong
@@ -42,6 +45,12 @@ public class ProxyChecker {
 
     @Autowired
     private CloseableHttpAsyncClient httpclient;
+
+    @Autowired
+    private ScheduledExecutorService scheduledExecutorService;
+
+    @Autowired
+    private Integer overallTimeout = 0;
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyChecker.class);
 
@@ -127,7 +136,7 @@ public class ProxyChecker {
 
         }
 
-        httpclient.execute(request, httpContext, new FutureCallback<HttpResponse>() {
+        Future<HttpResponse> future = httpclient.execute(request, httpContext, new FutureCallback<HttpResponse>() {
             @Override
             public void completed(HttpResponse httpResponse) {
                 logger.info("completed proxy: " + proxy + " for url " + request.getURI().toString());
@@ -165,6 +174,14 @@ public class ProxyChecker {
                 promise.cancel(false);
             }
         });
+
+        if (overallTimeout > 0) {
+            scheduledExecutorService.schedule(() -> {
+                if (!future.isDone()) {
+                    future.cancel(true);
+                }
+            }, overallTimeout, TimeUnit.MILLISECONDS);
+        }
 
         return promise;
     }

@@ -43,7 +43,9 @@ public class ProxyCheckerConfiguration {
         asyncClientBuilder.setDefaultRequestConfig(config);
 
         // make sure it is less than  num in /proc/sys/fs/file-max
-        asyncClientBuilder.setMaxConnPerRoute(maxConcurrency).setMaxConnTotal(maxConcurrency);
+        // because we use several websites to determine if proxy is available,
+        // the MaxConnPerRoute should be maxConcurrency * website_numbers(10 is enough)
+        asyncClientBuilder.setMaxConnPerRoute(10 * maxConcurrency).setMaxConnTotal(10 * maxConcurrency);
 
         asyncClientBuilder.setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, " +
                 "like Gecko) Chrome/54.0.2840.98 Safari/537.36");
@@ -87,7 +89,7 @@ public class ProxyCheckerConfiguration {
 
     @Bean
     public int maxConcurrency() {
-        return 1000;
+        return 10000;
     }
 
     @Bean

@@ -5,6 +5,7 @@ import com.mrkid.proxy.model.Proxy;
 import com.mrkid.proxy.service.ProxyService;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -75,10 +78,15 @@ public class ProxyCheckerApp {
                 System.out.println("dispatchedCount " + dispatchedCount.get() + " concurrency " + concurrency.get())
         );
 
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+
         proxyGenerator()
                 .doOnNext(p -> concurrency.incrementAndGet())
                 .doOnNext(p -> dispatchedCount.incrementAndGet())
-                .flatMap(p -> proxyChecker.check(p), maxConcurrency)
+                .flatMap(p ->
+                                Flowable.defer(() -> proxyChecker.check(p))
+                                        .subscribeOn(Schedulers.from(executorService))
+                        , maxConcurrency)
                 .doOnNext(p -> concurrency.decrementAndGet())
                 .doOnNext(p -> proxyService.saveProxyCheckResponse(p))
                 .doOnNext(p -> proxyCheckResponseWriters.forEach(writer -> {

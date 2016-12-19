@@ -53,6 +53,7 @@ public class ProxyCheckerApp {
 
         return Flowable.<List<Proxy>>generate(e -> {
             final List<Proxy> checkableProxies = proxyService.getCheckableProxies(page.getAndIncrement(), size);
+            System.out.println("process page " + page.get());
             if (checkableProxies.isEmpty()) {
                 e.onComplete();
             } else {

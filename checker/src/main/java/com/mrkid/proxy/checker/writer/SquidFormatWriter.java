@@ -44,7 +44,7 @@ public class SquidFormatWriter implements ProxyCheckResponseWriter {
                             "cache_peer %s parent %d 0 round-robin no-query connect-fail-limit=1 #%s %s",
                             host,
                             response.getProxy().getPort(),
-                            response.getProxyType().name(),
+                            response.getAnonymityType().name(),
                             response.getProxy().getSource()));
         }
 

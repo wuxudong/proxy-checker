@@ -1,6 +1,6 @@
 package com.mrkid.proxy.model;
 
-import com.mrkid.proxy.dto.ProxyType;
+import com.mrkid.proxy.dto.AnonymityType;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -20,7 +20,7 @@ public class LowQualityProxy {
 
     private boolean valid;
 
-    private int proxyType = ProxyType.UNKNOWN.getKey();
+    private int proxyType = AnonymityType.UNKNOWN.getKey();
 
     private int recentFailTimes = 0;
 

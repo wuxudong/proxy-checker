@@ -60,7 +60,7 @@ public class ProxyService {
         Proxy proxy = proxyRepository.getOne(key);
 
         proxy.setValid(proxyCheckResponse.isValid());
-        proxy.setProxyType(proxyCheckResponse.getProxyType().getKey());
+        proxy.setAnonymityType(proxyCheckResponse.getAnonymityType().getKey());
 
         if (proxyCheckResponse.isValid()) {
             proxy.setLastCheckSuccess(new Date());

@@ -1,6 +1,6 @@
 package com.mrkid.proxy.model;
 
-import com.mrkid.proxy.dto.ProxyType;
+import com.mrkid.proxy.dto.AnonymityType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -14,7 +14,6 @@ import java.util.Date;
  */
 @Data
 @Entity
-@Table(indexes = {@Index(name = "valid_recentFailTimes", columnList = "valid,recentFailTimes")})
 public class Proxy {
 
     @EmbeddedId
@@ -22,7 +21,7 @@ public class Proxy {
 
     private boolean valid;
 
-    private int proxyType = ProxyType.UNKNOWN.getKey();
+    private int anonymityType = AnonymityType.UNKNOWN.getKey();
 
     private int recentFailTimes = 0;
 

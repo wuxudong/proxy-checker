@@ -12,7 +12,7 @@ import java.util.Arrays;
  */
 
 
-public enum ProxyType {
+public enum AnonymityType {
     UNKNOWN(0),
     TRANSPARENT_PROXY(1),
     ANONYMOUS_PROXY(2),
@@ -21,7 +21,7 @@ public enum ProxyType {
 
     private int key;
 
-    ProxyType(int key) {
+    AnonymityType(int key) {
         this.key = key;
     }
 
@@ -32,8 +32,8 @@ public enum ProxyType {
     }
 
     @JsonCreator
-    public static ProxyType create(int i) {
-        return Arrays.stream(ProxyType.values()).filter(t -> t.key == i).findFirst().orElseGet(() ->
+    public static AnonymityType create(int i) {
+        return Arrays.stream(AnonymityType.values()).filter(t -> t.key == i).findFirst().orElseGet(() ->
                 UNKNOWN);
     }
 }

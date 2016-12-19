@@ -3,6 +3,8 @@ package com.mrkid.proxy.archive;
 import com.mrkid.proxy.model.Proxy;
 import com.mrkid.proxy.service.ProxyService;
 import io.reactivex.Flowable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -27,6 +29,8 @@ public class ArchiveApp {
     @Autowired
     private ProxyService proxyService;
 
+    private Logger logger = LoggerFactory.getLogger(ArchiveApp.class);
+
     public static void main(String[] args) throws Exception {
         final ConfigurableApplicationContext context = SpringApplication.run(ArchiveApp.class);
 
@@ -43,7 +47,7 @@ public class ArchiveApp {
         Flowable.<List<Proxy>>generate(e -> {
             long start = System.currentTimeMillis();
             final List<Proxy> inactiveProxies = proxyService.getInactiveProxies(page.getAndIncrement(), size);
-            System.out.println("get page " + page.get() + " cost " + (System.currentTimeMillis() - start));
+            logger.info("get page " + page.get() + " cost " + (System.currentTimeMillis() - start));
             if (inactiveProxies.isEmpty()) {
                 e.onComplete();
             } else {

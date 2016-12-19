@@ -15,7 +15,7 @@ public class ProxyCheckResponse {
 
     private boolean valid;
 
-    private ProxyType proxyType = ProxyType.UNKNOWN;
+    private AnonymityType anonymityType = AnonymityType.UNKNOWN;
 
     public ProxyCheckResponse() {
     }

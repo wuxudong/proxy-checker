@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mrkid.proxy.dto.ProxyCheckResponse;
 import com.mrkid.proxy.dto.ProxyDTO;
-import com.mrkid.proxy.dto.ProxyType;
+import com.mrkid.proxy.dto.AnonymityType;
 import io.reactivex.Flowable;
 import io.reactivex.processors.BehaviorProcessor;
 import org.apache.commons.io.IOUtils;
@@ -102,9 +102,9 @@ public class ProxyChecker {
             proxyCheckResponse.setRemoteIp(remoteIp);
             proxyCheckResponse.setValid(true);
             if (highAnonymity) {
-                proxyCheckResponse.setProxyType(ProxyType.HIGH_ANONYMITY_PROXY);
+                proxyCheckResponse.setAnonymityType(AnonymityType.HIGH_ANONYMITY_PROXY);
             } else {
-                proxyCheckResponse.setProxyType(ProxyType.TRANSPARENT_PROXY);
+                proxyCheckResponse.setAnonymityType(AnonymityType.TRANSPARENT_PROXY);
             }
 
             return proxyCheckResponse;

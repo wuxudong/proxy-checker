@@ -62,7 +62,7 @@ public class ProxyCheckerApp {
                 .concatMapIterable(l -> l, 20000)
                 .map(p -> {
                     ProxyDTO proxyDTO = new ProxyDTO();
-                    proxyDTO.setSchema(p.getKey().getSchema());
+                    proxyDTO.setType(p.getKey().getType());
                     proxyDTO.setHost(p.getKey().getHost());
                     proxyDTO.setPort(p.getKey().getPort());
                     proxyDTO.setSource(p.getSource());

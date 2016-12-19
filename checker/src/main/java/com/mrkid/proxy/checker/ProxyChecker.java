@@ -68,7 +68,7 @@ public class ProxyChecker {
                     return Flowable.just(new ProxyCheckResponse("", "", proxyDTO, false));
                 }).doFinally(
                         () -> logger.info("checking {}://{}:{} takes {} ms",
-                                proxyDTO.getSchema(), proxyDTO.getHost(), proxyDTO.getPort(),
+                                proxyDTO.getType(), proxyDTO.getHost(), proxyDTO.getPort(),
                                 System.currentTimeMillis() - start)
                 );
     }
@@ -125,11 +125,11 @@ public class ProxyChecker {
 
         logger.info("check proxy: " + proxy + " for url " + request.getURI().toString());
 
-        if (proxy.getSchema().equalsIgnoreCase("socks5") || proxy.getSchema().equalsIgnoreCase("socks4")) {
+        if (proxy.getType().equalsIgnoreCase("socks5") || proxy.getType().equalsIgnoreCase("socks4")) {
             httpContext.setAttribute("socks.address", new InetSocketAddress(proxy.getHost(), proxy.getPort()));
-        } else if (proxy.getSchema().equalsIgnoreCase("http") || proxy.getSchema().equalsIgnoreCase("https")) {
+        } else if (proxy.getType().equalsIgnoreCase("http") || proxy.getType().equalsIgnoreCase("https")) {
             RequestConfig config = RequestConfig.custom()
-                    .setProxy(new HttpHost(proxy.getHost(), proxy.getPort(), proxy.getSchema().toLowerCase()))
+                    .setProxy(new HttpHost(proxy.getHost(), proxy.getPort(), proxy.getType().toLowerCase()))
                     .build();
 
             request.setConfig(config);

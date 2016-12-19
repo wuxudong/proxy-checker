@@ -35,7 +35,7 @@ public class ProxyService {
 
     @Transactional
     public Proxy saveProxy(ProxyDTO proxyDTO) {
-        ProxyKey key = new ProxyKey(proxyDTO.getSchema(), proxyDTO.getHost(), proxyDTO.getPort());
+        ProxyKey key = new ProxyKey(proxyDTO.getType(), proxyDTO.getHost(), proxyDTO.getPort());
         Proxy proxy = proxyRepository.findOne(key);
         if (proxy == null) {
             proxy = new Proxy();
@@ -55,7 +55,7 @@ public class ProxyService {
     public Proxy saveProxyCheckResponse(ProxyCheckResponse proxyCheckResponse) {
 
         ProxyDTO proxyDTO = proxyCheckResponse.getProxy();
-        ProxyKey key = new ProxyKey(proxyDTO.getSchema(), proxyDTO.getHost(), proxyDTO.getPort());
+        ProxyKey key = new ProxyKey(proxyDTO.getType(), proxyDTO.getHost(), proxyDTO.getPort());
 
         Proxy proxy = proxyRepository.getOne(key);
 

@@ -32,7 +32,7 @@ public class SquidFormatWriter implements ProxyCheckResponseWriter {
 
     @Override
     public boolean shouldWrite(ProxyCheckResponse response) {
-        return response.isValid() && "http".equalsIgnoreCase(response.getProxy().getSchema());
+        return response.isValid() && "http".equalsIgnoreCase(response.getProxy().getType());
     }
 
     @Override

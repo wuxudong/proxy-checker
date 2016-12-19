@@ -125,7 +125,7 @@ class GoubanjiaCrawler extends WebCrawler {
             ProxyDTO proxy = new ProxyDTO();
             proxy.setHost(host);
             proxy.setPort(port);
-            proxy.setSchema("http");
+            proxy.setType("http");
             proxy.setLocation(location);
 
             proxy.setSource("GOUBANJIA");

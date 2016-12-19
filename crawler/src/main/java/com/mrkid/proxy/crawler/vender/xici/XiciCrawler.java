@@ -26,7 +26,7 @@ public class XiciCrawler implements ProxyFetcher {
         final List<ProxyDTO> proxies = Arrays.stream(body.text().split("\\s")).map(s -> {
             final String[] token = s.split(":");
             ProxyDTO proxy = new ProxyDTO();
-            proxy.setSchema("http");
+            proxy.setType("http");
             proxy.setHost(token[0]);
             proxy.setPort(Integer.valueOf(token[1]));
             proxy.setSource("XICI");

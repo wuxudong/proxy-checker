@@ -2,7 +2,6 @@ package com.mrkid.proxy.model;
 
 import lombok.Data;
 
-import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.io.Serializable;
 
@@ -14,7 +13,7 @@ import java.io.Serializable;
 @Data
 @Embeddable
 public class ProxyKey implements Serializable{
-    private String schema;
+    private String type;
 
     private String host;
 
@@ -23,8 +22,8 @@ public class ProxyKey implements Serializable{
     public ProxyKey() {
     }
 
-    public ProxyKey(String schema, String host, int port) {
-        this.schema = schema;
+    public ProxyKey(String type, String host, int port) {
+        this.type = type;
         this.host = host;
         this.port = port;
     }

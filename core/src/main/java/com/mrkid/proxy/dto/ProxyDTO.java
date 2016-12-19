@@ -12,9 +12,9 @@ import java.util.Date;
  * Time: 6:16 PM
  */
 @Data
-@EqualsAndHashCode(of = {"schema", "host"})
+@EqualsAndHashCode(of = {"type", "host"})
 public class ProxyDTO {
-    private String schema = "http";
+    private String type = "http";
     private String host;
     private int port;
 

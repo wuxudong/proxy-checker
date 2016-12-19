@@ -49,7 +49,7 @@ public class P881FreeCrawler implements ProxyFetcher {
                     }
 
                     ProxyDTO proxy = new ProxyDTO();
-                    proxy.setSchema("http");
+                    proxy.setType("http");
                     proxy.setHost(token[0]);
                     proxy.setPort(Integer.valueOf(token[1]));
                     proxy.setSource("P881FREE");

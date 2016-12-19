@@ -173,7 +173,7 @@ public class ProxyChecker {
             public void cancelled() {
                 logger.info("cancel proxy: " + proxy + " for url " + request.getURI().toString());
 
-                promise.cancel(false);
+                promise.cancel(true);
             }
         });
 

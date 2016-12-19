@@ -6,6 +6,7 @@ import com.mrkid.proxy.service.ProxyService;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,22 +79,33 @@ public class ProxyCheckerApp {
                 System.out.println("dispatchedCount " + dispatchedCount.get() + " concurrency " + concurrency.get())
         );
 
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        ExecutorService checkerExecutor = Executors.newFixedThreadPool(10,
+                new BasicThreadFactory.Builder().namingPattern("ProxyChecker-Scheduler-%d").build());
+
+        ExecutorService saverExecutor = Executors.newFixedThreadPool(10,
+                new BasicThreadFactory.Builder().namingPattern("ProxySaver-Scheduler-%d").build());
+
 
         proxyGenerator()
                 .doOnNext(p -> concurrency.incrementAndGet())
                 .doOnNext(p -> dispatchedCount.incrementAndGet())
                 .flatMap(p ->
                                 Flowable.defer(() -> proxyChecker.check(p))
-                                        .subscribeOn(Schedulers.from(executorService))
+                                        .subscribeOn(Schedulers.from(checkerExecutor))
                         , maxConcurrency)
-                .doOnNext(p -> concurrency.decrementAndGet())
-                .doOnNext(p -> proxyService.saveProxyCheckResponse(p))
-                .doOnNext(p -> proxyCheckResponseWriters.forEach(writer -> {
+                .doOnNext(p -> concurrency.decrementAndGet()).
+                doOnNext(p -> proxyCheckResponseWriters.forEach(writer -> {
                     if (writer.shouldWrite(p)) writer.write(p);
-                })).blockingSubscribe();
+                }))
+                .flatMap(p ->
+                        Flowable.defer(() -> Flowable.just(proxyService.saveProxyCheckResponse(p)))
+                                .subscribeOn(Schedulers.from(saverExecutor)))
+                .blockingSubscribe();
 
         audit.dispose();
+
+        checkerExecutor.shutdown();
+        saverExecutor.shutdown();
 
     }
 

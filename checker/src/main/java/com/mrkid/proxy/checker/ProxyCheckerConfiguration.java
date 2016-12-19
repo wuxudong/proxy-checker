@@ -3,6 +3,7 @@ package com.mrkid.proxy.checker;
 import com.mrkid.proxy.checker.utils.AddressUtils;
 import com.mrkid.proxy.checker.writer.PlainFormatWriter;
 import com.mrkid.proxy.checker.writer.SquidFormatWriter;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * User: xudong
@@ -99,7 +101,8 @@ public class ProxyCheckerConfiguration {
 
     @Bean
     public ScheduledExecutorService scheduledExecutorService() {
-        return Executors.newScheduledThreadPool(10);
+        return Executors.newScheduledThreadPool(10,
+                new BasicThreadFactory.Builder().namingPattern("Timeout Scheduler-%d").build());
     }
 
 

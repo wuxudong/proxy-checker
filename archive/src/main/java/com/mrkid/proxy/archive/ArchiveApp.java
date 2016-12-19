@@ -41,8 +41,9 @@ public class ArchiveApp {
         int size = 1000;
 
         Flowable.<List<Proxy>>generate(e -> {
+            long start = System.currentTimeMillis();
             final List<Proxy> inactiveProxies = proxyService.getInactiveProxies(page.getAndIncrement(), size);
-            System.out.println("process page " + page.get());
+            System.out.println("get page " + page.get() + " cost " + (System.currentTimeMillis() - start));
             if (inactiveProxies.isEmpty()) {
                 e.onComplete();
             } else {

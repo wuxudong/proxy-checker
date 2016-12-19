@@ -18,17 +18,39 @@ It will
  
 * run crawler & checker client
  
-    * only run crawler   
+    * run crawler   
     
-    `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a crawl`
+			java -jar crawler/target/crawler-1.0-SNAPSHOT.jar
 
 
-    * only run checker
+    * run checker
     
-    `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a check`
+        	java -jar checker/target/checker-1.0-SNAPSHOT.jar
     
+     Valid proxies are exported to ./data/ in plain/squid/... format.
+     
+     By default, the check concurrency is 1000, you can increase concurrency by modifying ProxyCheckerConfiguration.maxConcurrency. 
+     
+     If you want high concurrency, do remember to update linux file-max, otherwise it will crash because of *too many open files* problem.
+     
     * run them both
     
-    `java -jar proxy-checker-client-1.0-SNAPSHOT.jar -a all`
+    
+    		java -jar crawler/target/crawler-1.0-SNAPSHOT.jar         
+     		java -jar checker/target/checker-1.0-SNAPSHOT.jar
 
-* Data is stored at ./db/proxy.mv.db by default, and valid proxies are exported to ./data/ in plain/squid/... format.
+
+
+* By default, h2base is used, and data is stored at ./db/proxy.mv.db  
+
+  You can switch to mysql by updating core/src/main/resources/application.properties.
+  
+* The *etl* is used to batch import proxies manually.
+      
+   `java -jar etl/target/etl-1.0-SNAPSHOT.jar [filepath] [source_name]`
+   
+* The *archive* is used to archive inactive proxies. 
+
+  If a proxy fail to check 3 times recently, it is considered as inactive.
+ 
+

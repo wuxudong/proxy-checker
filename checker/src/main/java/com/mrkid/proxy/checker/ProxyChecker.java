@@ -152,7 +152,10 @@ public class ProxyChecker {
                         logger.info("get " + body + " from " + request.getURI() + " through " + proxy);
                         promise.complete(body);
                     } catch (IOException e) {
-                        logger.error("unable to parse check response of " + httpResponse.getEntity(), e);
+                        logger.error("unable to parse check response of {}, {}, {}",
+                                httpResponse.getEntity(),
+                                e.getClass().getName(),
+                                e.getMessage());
 
                         promise.completeExceptionally(e);
                     }
@@ -161,9 +164,8 @@ public class ProxyChecker {
 
             @Override
             public void failed(Exception e) {
-                logger.error("failed to visit " + request.getURI().toString() + " through " + proxy + " caused by " + e
-                                .getMessage(),
-                        e);
+                logger.error("failed to visit {} through  {} caused by  {} {}",
+                        request.getURI().toString(), proxy, e.getClass().getName(), e.getMessage());
                 promise.completeExceptionally(e);
             }
 

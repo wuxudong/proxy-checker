@@ -99,7 +99,7 @@ public class ProxyCheckerConfiguration {
 
     @Bean
     public ScheduledExecutorService scheduledExecutorService() {
-        return Executors.newSingleThreadScheduledExecutor();
+        return Executors.newScheduledThreadPool(10);
     }
 
 

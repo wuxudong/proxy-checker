@@ -6,6 +6,7 @@ import com.mrkid.proxy.service.ProxyService;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,6 +52,30 @@ public class ProxyCheckerApp {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyCheckerApp.class);
 
+    private Flowable<ProxyDTO> plainProxyGenerator(File file, String source) throws IOException {
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            return Flowable.generate(e -> {
+                String line = reader.readLine();
+                if (line != null && StringUtils.isNotBlank(line)) {
+                    String[] tokens = line.split(":");
+                    String host = tokens[0];
+                    int port = Integer.valueOf(tokens[1]);
+
+                    ProxyDTO proxy = new ProxyDTO();
+                    proxy.setHost(host);
+                    proxy.setPort(port);
+                    proxy.setSource(source);
+                    e.onNext(proxy);
+                } else {
+                    e.onComplete();
+                }
+            });
+
+        }
+
+    }
+
     private Flowable<ProxyDTO> proxyGenerator() {
         AtomicInteger page = new AtomicInteger(0);
         int size = 1000;
@@ -71,7 +100,7 @@ public class ProxyCheckerApp {
                 });
     }
 
-    private void check() {
+    private void check(File file, String source) throws IOException {
         AtomicInteger concurrency = new AtomicInteger(0);
 
         AtomicInteger dispatchedCount = new AtomicInteger(0);
@@ -87,7 +116,7 @@ public class ProxyCheckerApp {
                 new BasicThreadFactory.Builder().namingPattern("ProxySaver-Scheduler-%d").build());
 
 
-        proxyGenerator()
+        plainProxyGenerator(file, source)
                 .doOnNext(p -> concurrency.incrementAndGet())
                 .doOnNext(p -> dispatchedCount.incrementAndGet())
                 .flatMap(p ->
@@ -98,9 +127,9 @@ public class ProxyCheckerApp {
                 doOnNext(p -> proxyCheckResponseWriters.forEach(writer -> {
                     if (writer.shouldWrite(p)) writer.write(p);
                 }))
-                .flatMap(p ->
-                        Flowable.defer(() -> Flowable.just(proxyService.saveProxyCheckResponse(p)))
-                                .subscribeOn(Schedulers.from(saverExecutor)))
+//                .flatMap(p ->
+//                        Flowable.defer(() -> Flowable.just(proxyService.saveProxyCheckResponse(p)))
+//                                .subscribeOn(Schedulers.from(saverExecutor)))
                 .blockingSubscribe();
 
         audit.dispose();
@@ -114,8 +143,13 @@ public class ProxyCheckerApp {
     public static void main(String[] args) throws Exception {
         final ConfigurableApplicationContext context = SpringApplication.run(ProxyCheckerApp.class);
 
+
+        File file = new File(args[0]);
+
+        String source = args[1];
+
         final ProxyCheckerApp app = context.getBean(ProxyCheckerApp.class);
-        app.check();
+        app.check(file, source);
 
         context.close();
     }

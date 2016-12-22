@@ -52,27 +52,25 @@ public class ProxyCheckerApp {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyCheckerApp.class);
 
-    private Flowable<ProxyDTO> plainProxyGenerator(File file, String source) throws IOException {
+    private Flowable<ProxyDTO> plainProxyGenerator(BufferedReader reader, String source) throws IOException {
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            return Flowable.generate(e -> {
-                String line = reader.readLine();
-                if (line != null && StringUtils.isNotBlank(line)) {
-                    String[] tokens = line.split(":");
-                    String host = tokens[0];
-                    int port = Integer.valueOf(tokens[1]);
+        return Flowable.generate(e -> {
+            String line = reader.readLine();
+            if (line != null && StringUtils.isNotBlank(line)) {
+                String[] tokens = line.split(":");
+                String host = tokens[0];
+                int port = Integer.valueOf(tokens[1]);
 
-                    ProxyDTO proxy = new ProxyDTO();
-                    proxy.setHost(host);
-                    proxy.setPort(port);
-                    proxy.setSource(source);
-                    e.onNext(proxy);
-                } else {
-                    e.onComplete();
-                }
-            });
+                ProxyDTO proxy = new ProxyDTO();
+                proxy.setHost(host);
+                proxy.setPort(port);
+                proxy.setSource(source);
+                e.onNext(proxy);
+            } else {
+                e.onComplete();
+            }
+        });
 
-        }
 
     }
 
@@ -115,8 +113,9 @@ public class ProxyCheckerApp {
         ExecutorService saverExecutor = Executors.newFixedThreadPool(10,
                 new BasicThreadFactory.Builder().namingPattern("ProxySaver-Scheduler-%d").build());
 
+        BufferedReader reader = new BufferedReader(new FileReader(file));
 
-        plainProxyGenerator(file, source)
+        plainProxyGenerator(reader, source)
                 .doOnNext(p -> concurrency.incrementAndGet())
                 .doOnNext(p -> dispatchedCount.incrementAndGet())
                 .flatMap(p ->
@@ -136,6 +135,7 @@ public class ProxyCheckerApp {
 
         checkerExecutor.shutdown();
         saverExecutor.shutdown();
+        reader.close();
 
     }
 

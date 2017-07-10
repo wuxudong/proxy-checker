@@ -1,7 +1,15 @@
 package com.mrkid.proxy.crawler;
 
-import com.mrkid.proxy.dto.ProxyDTO;
-import com.mrkid.proxy.service.ProxyService;
+import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +21,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.stream.Collectors;
+import com.mrkid.proxy.dto.ProxyDTO;
+import com.mrkid.proxy.service.ProxyService;
 
 /**
  * User: xudong
@@ -40,6 +45,8 @@ public class ProxyCrawlerApp {
 
     private void crawl() {
         BlockingQueue<ProxyDTO> proxies = new LinkedBlockingQueue<>();
+        ScriptEngineManager factory = new ScriptEngineManager();
+        ScriptEngine engine = factory.getEngineByName("JavaScript");
 
         List<Thread> threads = proxyFetchers.stream().map(fetcher -> new Thread(() -> {
             try {
@@ -63,7 +70,25 @@ public class ProxyCrawlerApp {
         logger.info(proxies.size() + " proxies crawled");
         new HashSet<>(proxies).stream()
                 .filter(p -> StringUtils.isNotBlank(p.getHost()))
-                .forEach(p -> proxyService.saveProxy(p));
+                .forEach(p -> {
+                	this.evalHostIfNeeded(engine, p);
+                	proxyService.saveProxy(p);
+                });
+    }
+    
+    /**
+     * Extra post-processing to handle JS "document.write" case
+     */
+    private void evalHostIfNeeded(ScriptEngine engine, ProxyDTO proxy) {
+    	if (proxy.getHost().indexOf("document.write") != -1) {
+    	    String result;
+			try {
+				result = (String) engine.eval("var document = { write: function(s) {return s;} }; " + proxy.getHost());
+				proxy.setHost(result);
+			} catch (ScriptException e) {
+				logger.warn("Failed evaling javascript on host name of proxy: " + proxy);
+			}
+    	}
     }
 
     public static void main(String[] args) throws Exception {

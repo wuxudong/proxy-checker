@@ -1,12 +1,16 @@
 package com.mrkid.proxy.checker;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mrkid.proxy.dto.ProxyCheckResponse;
-import com.mrkid.proxy.dto.ProxyDTO;
-import com.mrkid.proxy.dto.AnonymityType;
-import io.reactivex.Flowable;
-import io.reactivex.processors.BehaviorProcessor;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -18,21 +22,20 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mrkid.proxy.dto.AnonymityType;
+import com.mrkid.proxy.dto.ProxyCheckResponse;
+import com.mrkid.proxy.dto.ProxyDTO;
+
+import io.reactivex.Flowable;
+import io.reactivex.processors.BehaviorProcessor;
 
 /**
  * User: xudong
@@ -120,6 +123,14 @@ public class ProxyChecker {
     private CompletableFuture<String> execute(ProxyDTO proxy, HttpRequestBase request) {
 
         CompletableFuture<String> promise = new CompletableFuture<>();
+        
+        // Bugfix: If host name contains blanks, new HttpHost() below will throw exception and promise won't
+        // complete forever.
+        if (TextUtils.containsBlanks(proxy.getHost())) {
+        	logger.warn("cancelling proxy: " + proxy + " since it contains blanks in host name");
+        	promise.cancel(true);
+        	return promise;
+        }
 
         HttpContext httpContext = HttpClientContext.create();
 

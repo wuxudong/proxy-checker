@@ -53,4 +53,16 @@ It will
 
   If a proxy fail to check 3 times recently, it is considered as inactive.
  
+## Docker
 
+It's convenient to run the proxy server in docker.
+
+* Install docker
+* `mvn clean -Dmaven.test.skip package`
+* `docker build -t auto-proxy .`
+* (optional) save/load the docker image
+* `docker run -d -p 3128:3128 --name wifiyou-proxy auto-proxy`
+* `docker exec wifiyou-proxy ./update`
+* 127.0.0.1:3128 is ready to use as proxy server
+* Run `docker exec wifiyou-proxy ./update` anytime to update proxy list
+* Run `docker stop wifiyou-proxy` and `docker start wifiyou-proxy` to stop/start

@@ -127,9 +127,9 @@ public class ProxyChecker {
         // Bugfix: If host name contains blanks, new HttpHost() below will throw exception and promise won't
         // complete forever.
         if (TextUtils.containsBlanks(proxy.getHost())) {
-        	logger.warn("cancelling proxy: " + proxy + " since it contains blanks in host name");
-        	promise.cancel(true);
-        	return promise;
+            logger.warn("cancelling proxy: " + proxy + " since it contains blanks in host name");
+            promise.cancel(true);
+            return promise;
         }
 
         HttpContext httpContext = HttpClientContext.create();

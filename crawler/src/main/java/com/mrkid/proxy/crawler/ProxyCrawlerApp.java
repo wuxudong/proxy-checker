@@ -71,8 +71,8 @@ public class ProxyCrawlerApp {
         new HashSet<>(proxies).stream()
                 .filter(p -> StringUtils.isNotBlank(p.getHost()))
                 .forEach(p -> {
-                	this.evalHostIfNeeded(engine, p);
-                	proxyService.saveProxy(p);
+                    this.evalHostIfNeeded(engine, p);
+                    proxyService.saveProxy(p);
                 });
     }
     
@@ -80,15 +80,15 @@ public class ProxyCrawlerApp {
      * Extra post-processing to handle JS "document.write" case
      */
     private void evalHostIfNeeded(ScriptEngine engine, ProxyDTO proxy) {
-    	if (proxy.getHost().indexOf("document.write") != -1) {
-    	    String result;
-			try {
-				result = (String) engine.eval("var document = { write: function(s) {return s;} }; " + proxy.getHost());
-				proxy.setHost(result);
-			} catch (ScriptException e) {
-				logger.warn("Failed evaling javascript on host name of proxy: " + proxy);
-			}
-    	}
+        if (proxy.getHost().indexOf("document.write") != -1) {
+            String result;
+            try {
+                result = (String) engine.eval("var document = { write: function(s) {return s;} }; " + proxy.getHost());
+                proxy.setHost(result);
+            } catch (ScriptException e) {
+                logger.warn("Failed evaling javascript on host name of proxy: " + proxy);
+            }
+        }
     }
 
     public static void main(String[] args) throws Exception {
